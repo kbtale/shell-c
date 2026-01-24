@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
     if (strncmp(input, "echo", 4) == 0) {
       
-      if (input[4] == '\n' || input[4] == '\0') {
+      if (input[4] == '\0') {
         printf("\r\n");
         continue;
       }
