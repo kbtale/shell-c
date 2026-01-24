@@ -19,11 +19,11 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    if (strncmp(input, "echo ", 5) == 0) {
-      printf("%s\r\n", input + 5);
+    if (strncmp(input, "echo", 4) == 0) {
+      printf("%s\r\n", input + 4);
       continue;
     }
-    
+
     input[strlen(input) - 1] = '\0'; // Remove newline character
     printf("%s: command not found\r\n", input);
   }
