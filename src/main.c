@@ -2,6 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+// --- CROSS-PLATFORM SETUP ---
+#ifdef _WIN32
+    #include <io.h>
+    #define access _access
+    // Windows doesn't have a specific "executable" bit check in _access
+    // So I use 0 (existence check) as the closest proxy
+    #define X_OK 0 
+    #define PATH_DELIMITER ";"
+    // Windows often creates warnings for strdup, preferring _strdup
+    #define strdup _strdup 
+#else
+    #include <unistd.h>
+    // Linux uses access and : as delimiter
+    #define PATH_DELIMITER ":"
+#endif
+// ----------------------------
+
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
@@ -53,6 +70,27 @@ int main(int argc, char *argv[]) {
           }
         }
         if (!found) {
+          char *path_env = getenv("PATH");
+
+          if (path_env != NULL) {
+            char *path_copy = strdup(path_env);
+            char *dir = strtok(path_copy, PATH_DELIMITER);
+
+            while (dir != NULL) {
+              char full_path[512];
+              snprintf(full_path, sizeof(full_path), "%s/%s", dir, command);
+
+              if (access(full_path, X_OK) == 0) {
+                printf("%s is %s\r\n", command, full_path);
+                found = 1;
+                break;
+              }
+
+              dir = strtok(NULL, PATH_DELIMITER);
+            }
+            free(path_copy);
+          }
+
           printf("%s: not found\r\n", command);
         }
       }
