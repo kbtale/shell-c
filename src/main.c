@@ -12,7 +12,12 @@ int main(int argc, char *argv[]) {
   
     char input[100];
     fgets(input, sizeof(input), stdin);
-  
+    
+    if (strncmp(input, "exit", 4) == 0) {
+      if (input[4] == '\n' || input[4] == '\0' || input[4] == ' ') {
+        break;
+    }
+
     input[strlen(input) - 1] = '\0'; // Remove newline character
     printf("%s: command not found\r\n", input);
   }
