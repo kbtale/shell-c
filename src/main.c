@@ -91,7 +91,8 @@ int main(int argc, char *argv[]) {
             free(path_copy);
           }
 
-          printf("%s: not found\r\n", command);
+          if (!found)
+            printf("%s: not found\r\n", command);
         }
       }
       continue;
