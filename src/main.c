@@ -20,7 +20,15 @@ int main(int argc, char *argv[]) {
     }
 
     if (strncmp(input, "echo", 4) == 0) {
-      printf("%s\r\n", input + 4);
+      
+      if (input[4] == '\n' || input[4] == '\0') {
+        printf("\r\n");
+        continue;
+      }
+
+      if (input[4] == ' ')
+        printf("%s\r\n", input + 5);
+      
       continue;
     }
 
