@@ -107,16 +107,7 @@ char *args[64];
             token_buf[token_pos++] = c;
         }
     }
-
-    // Add the final word
-    if (token_pos > 0) {
-        token_buf[token_pos] = '\0';
-        args[arg_count++] = strdup(token_buf);
-    }
-    args[arg_count] = NULL;
-
-    if (args[0] == NULL) continue;
-
+    
     // Add the final word (if any)
     if (token_pos > 0) {
         token_buf[token_pos] = '\0';
