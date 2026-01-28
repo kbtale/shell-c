@@ -230,9 +230,16 @@ if (strcmp(args[0], "cd") == 0) {
     // External Program Execution
     char *command_path = get_path(args[0]);
 
-    // FALLBACK: If not found in PATH, check if it exists in the current directory
-    if (command_path == NULL && access(args[0], X_OK) == 0) {
-        command_path = strdup(args[0]);
+    // FALLBACK: If NOT in PATH, check if it exists in the current directory
+    if (command_path == NULL) {
+        // Use 0 (F_OK) to check existence. 
+        if (access(args[0], 0) == 0) {
+            // prepend "./" for execv to work on Linux
+            // "myprog" -> "./myprog"
+            char *relative_path = malloc(strlen(args[0]) + 3);
+            sprintf(relative_path, "./%s", args[0]);
+            command_path = relative_path;
+        }
     }
 
     if (command_path != NULL) {
