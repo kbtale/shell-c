@@ -72,17 +72,44 @@ int main(int argc, char *argv[]) {
     input[strlen(input) - 1] = '\0'; // Remove newline character
     
     // Tokenize
-    char *args[64]; // Array to hold the parts
+    char *args[64];
     int arg_count = 0;
     
-    char *token = strtok(input, " ");
-    while (token != NULL && arg_count < 63) {
-        args[arg_count++] = token;
-        token = strtok(NULL, " ");
-    }
-    args[arg_count] = NULL; // End the array for the system
+    char token_buf[1024]; // Temp buffer to build words
+    int token_pos = 0;
+    int in_quotes = 0;    // Are we inside single quotes?
 
-    if (args[0] == NULL) continue; // Skip empty lines
+    for (int i = 0; i < strlen(input); i++) {
+        char c = input[i];
+
+        // Toggle quote status
+        if (c == '\'') {
+            in_quotes = !in_quotes;
+            continue; // Don't add the quote char itself to the buffer
+        }
+
+        // Handle space (Only split if NOT in quotes)
+        if (c == ' ' && !in_quotes) {
+            if (token_pos > 0) {
+                token_buf[token_pos] = '\0'; // Finish word
+                args[arg_count++] = strdup(token_buf); // Save copy
+                token_pos = 0; // Reset buffer
+            }
+            // Skip the space
+        } else {
+            // Add character to current word
+            token_buf[token_pos++] = c;
+        }
+    }
+
+    // Add the final word (if any)
+    if (token_pos > 0) {
+        token_buf[token_pos] = '\0';
+        args[arg_count++] = strdup(token_buf);
+    }
+    args[arg_count] = NULL; // Null-terminate the list
+
+    if (args[0] == NULL) continue;
     
     if (strcmp(args[0], "exit") == 0) {
         if (args[1] != NULL && strcmp(args[1], "0") == 0) return 0;
@@ -181,6 +208,9 @@ if (strcmp(args[0], "cd") == 0) {
         free(command_path);
     } else {
         printf("%s: command not found\n", args[0]);
+        for (int i = 0; i < arg_count; i++) {
+        free(args[i]);
+    }
     }
 
   }
