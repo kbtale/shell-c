@@ -109,10 +109,28 @@ int main(int argc, char *argv[]) {
         continue;
     }
 
-    if (strcmp(args[0], "cd") == 0) {
-        // args[1] contains the path (e.g., "/usr/local/bin")
-        // chdir returns 0 on success, -1 on failure
-        if (chdir(args[1]) != 0) {
+if (strcmp(args[0], "cd") == 0) {
+        char *path = args[1];
+        
+        // Handle the "~" alias
+        if (path != NULL && strcmp(path, "~") == 0) {
+            
+            // for Linux/Tests
+            path = getenv("HOME");
+            
+            // If that fails, Windows USERPROFILE
+            if (path == NULL) {
+                path = getenv("USERPROFILE");
+            }
+
+            if (path == NULL) {
+                printf("cd: HOME not set\n");
+                continue;
+            }
+        }
+
+        // Directory change, 0 if true
+        if (chdir(path) != 0) {
             printf("cd: %s: No such file or directory\n", args[1]);
         }
         continue;
