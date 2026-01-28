@@ -15,6 +15,7 @@
     #define PATH_DELIMITER ";"
     #define strdup _strdup
     #define getcwd _getcwd
+    #define chdir _chdir
 #else
     // Linux/Mac-specific headers
     #include <unistd.h>   // For fork, execv, access
@@ -59,7 +60,7 @@ char *get_path(char *command) {
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-  const char *builtins[] = {"echo", "exit", "type", "pwd"};
+  const char *builtins[] = {"echo", "exit", "type", "pwd", "cd"};
   size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
   while (1)
@@ -104,6 +105,15 @@ int main(int argc, char *argv[]) {
             printf("%s\n", cwd);
         } else {
             perror("pwd failed");
+        }
+        continue;
+    }
+
+    if (strcmp(args[0], "cd") == 0) {
+        // args[1] contains the path (e.g., "/usr/local/bin")
+        // chdir returns 0 on success, -1 on failure
+        if (chdir(args[1]) != 0) {
+            printf("cd: %s: No such file or directory\n", args[1]);
         }
         continue;
     }
