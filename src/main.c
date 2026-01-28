@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     input[strlen(input) - 1] = '\0'; // Remove newline character
     
     // Tokenize
-char *args[64];
+    char *args[64];
     int arg_count = 0;
     
     char token_buf[1024]; 
@@ -81,6 +81,19 @@ char *args[64];
 
     for (int i = 0; i < strlen(input); i++) {
         char c = input[i];
+
+        // --- Handle Backslash Escaping ---
+        // Only active if we are NOT inside quotes
+        if (c == '\\' && quote_char == 0) {
+            // Peek at the next character
+            if (i + 1 < strlen(input)) {
+                i++; // Skip the backslash
+                c = input[i]; // Read the character being escaped
+                token_buf[token_pos++] = c; // Add it literally
+                continue; // Skip the rest of the loop for this char
+            }
+        }
+        // --------------------------------------
 
         // Check for quotes
         if (c == '\'' || c == '"') {
@@ -107,7 +120,7 @@ char *args[64];
             token_buf[token_pos++] = c;
         }
     }
-    
+
     // Add the final word (if any)
     if (token_pos > 0) {
         token_buf[token_pos] = '\0';
