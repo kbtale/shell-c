@@ -82,16 +82,36 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < strlen(input); i++) {
         char c = input[i];
 
-        // --- Handle Backslash Escaping ---
-        // Only active if we are NOT inside quotes
-        if (c == '\\' && quote_char == 0) {
-            // Peek at the next character
-            if (i + 1 < strlen(input)) {
-                i++; // Skip the backslash
-                c = input[i]; // Read the character being escaped
-                token_buf[token_pos++] = c; // Add it literally
-                continue; // Skip the rest of the loop for this char
+// --- Handle Backslash Escaping ---
+        if (c == '\\') {
+            int should_escape = 0;
+            
+            // Case 1: Outside quotes -> Always escape
+            if (quote_char == 0) {
+                should_escape = 1;
             }
+            // Case 2: Inside Double Quotes -> Only escape \ and "
+            else if (quote_char == '"') {
+                if (i + 1 < strlen(input)) {
+                    char next_c = input[i+1];
+                    if (next_c == '"' || next_c == '\\' || next_c == '$' || next_c == '\n') {
+                        should_escape = 1;
+                    }
+                }
+            }
+
+            // Case 3: Inside Single Quotes -> Never escape (Implicitly should_escape = 0)
+
+            // Execute the escape if condition met
+            if (should_escape) {
+                 if (i + 1 < strlen(input)) {
+                    i++; // Skip the backslash
+                    c = input[i]; // Grab the character being escaped
+                    token_buf[token_pos++] = c; // Add it literally
+                    continue; 
+                }
+            }
+            // If I don't escape (e.g. "\n" inside double quotes), it falls through. The backslash is added as a normal character.
         }
         // --------------------------------------
 
