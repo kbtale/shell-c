@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     char *args[64]; // Array to hold the parts
     int arg_count = 0;
     
-    char *token = strtok(args[0], " ");
+    char *token = strtok(input, " ");
     while (token != NULL && arg_count < 63) {
         args[arg_count++] = token;
         token = strtok(NULL, " ");
@@ -96,29 +96,27 @@ int main(int argc, char *argv[]) {
         continue;
     }
 
-    if (strncmp(args[0], "type", 4) == 0) {
+    if (strcmp(args[0], "type") == 0) {
       if (args[1] == NULL) continue;
 
-      if (input[4] == ' ') {
-        char *command = input + 5;
-        int found = 0;
-        for (int i = 0; i < num_builtins; i++) {
-          if (strcmp(command, builtins[i]) == 0) {
-            printf("%s is a shell builtin\r\n", command);
-            found = 1;
-            break;
-          }
+      int found = 0;
+      for (int i = 0; i < num_builtins; i++) {
+        if (strcmp(args[1], builtins[i]) == 0) {
+          printf("%s is a shell builtin\n", args[1]);
+          found = 1;
+          break;
         }
+      }
+      
       if (!found) {
-            char *path = get_path(args[1]); 
-            
-            if (path) {
-                printf("%s is %s\n", args[1], path);
-                free(path); // Always free memory from get_path
-            } else {
-                printf("%s: not found\n", args[1]);
-            }
-        }
+         char *path = get_path(args[1]); 
+         
+         if (path) {
+             printf("%s is %s\n", args[1], path);
+             free(path); 
+         } else {
+             printf("%s: not found\n", args[1]);
+         }
       }
       continue;
     }
@@ -144,7 +142,7 @@ int main(int argc, char *argv[]) {
     } else {
         printf("%s: command not found\n", args[0]);
     }
-    
+
   }
   return 0;
 }
