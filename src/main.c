@@ -72,35 +72,50 @@ int main(int argc, char *argv[]) {
     input[strlen(input) - 1] = '\0'; // Remove newline character
     
     // Tokenize
-    char *args[64];
+char *args[64];
     int arg_count = 0;
     
-    char token_buf[1024]; // Temp buffer to build words
+    char token_buf[1024]; 
     int token_pos = 0;
-    int in_quotes = 0;    // Are we inside single quotes?
+    char quote_char = 0; // 0 = none, ' = single, " = double
 
     for (int i = 0; i < strlen(input); i++) {
         char c = input[i];
 
-        // Toggle quote status
-        if (c == '\'') {
-            in_quotes = !in_quotes;
-            continue; // Don't add the quote char itself to the buffer
+        // Check for quotes
+        if (c == '\'' || c == '"') {
+            if (quote_char == 0) {
+                quote_char = c; // Start quoting
+                continue;
+            }
+            if (quote_char == c) {
+                quote_char = 0; // End quoting
+                continue;
+            }
+            // If we are in ", ' is text
+            // If we are in ', " is text
         }
 
-        // Handle space (Only split if NOT in quotes)
-        if (c == ' ' && !in_quotes) {
+        // Handle space (Only split if NOT in any quotes)
+        if (c == ' ' && quote_char == 0) {
             if (token_pos > 0) {
-                token_buf[token_pos] = '\0'; // Finish word
-                args[arg_count++] = strdup(token_buf); // Save copy
-                token_pos = 0; // Reset buffer
+                token_buf[token_pos] = '\0';
+                args[arg_count++] = strdup(token_buf);
+                token_pos = 0;
             }
-            // Skip the space
         } else {
-            // Add character to current word
             token_buf[token_pos++] = c;
         }
     }
+
+    // Add the final word
+    if (token_pos > 0) {
+        token_buf[token_pos] = '\0';
+        args[arg_count++] = strdup(token_buf);
+    }
+    args[arg_count] = NULL;
+
+    if (args[0] == NULL) continue;
 
     // Add the final word (if any)
     if (token_pos > 0) {
