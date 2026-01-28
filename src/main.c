@@ -227,8 +227,13 @@ if (strcmp(args[0], "cd") == 0) {
       continue;
     }
 
-    // If not a builtin, try to execute it
+    // External Program Execution
     char *command_path = get_path(args[0]);
+
+    // FALLBACK: If not found in PATH, check if it exists in the current directory
+    if (command_path == NULL && access(args[0], X_OK) == 0) {
+        command_path = strdup(args[0]);
+    }
 
     if (command_path != NULL) {
         #ifdef _WIN32
