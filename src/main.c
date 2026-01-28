@@ -30,7 +30,7 @@
 char *get_path(char *command) {
     // Check if command is a path (contains / or \) or exists locally
     if (strchr(command, '/') != NULL || strchr(command, '\\') != NULL) {
-        if (access(command, X_OK) == 0) {
+        if (access(command, 0) == 0) {
             return strdup(command);
         }
         return NULL;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     
     char input[100];
     if (!fgets(input, sizeof(input), stdin)) break;
-    input[strlen(input) - 1] = '\0'; // Remove newline character
+    input[strcspn(input, "\n")] = '\0'; // Remove newline character
     
     // Tokenize
     char *args[64];
