@@ -7,12 +7,14 @@
     // Windows-specific headers
     #include <io.h>       // For _access
     #include <process.h>  // For _spawnv (The Windows version of fork/exec)
-    
+    #include <direct.h>
+
     // Windows mappings to match Linux names
     #define access _access
     #define X_OK 0
     #define PATH_DELIMITER ";"
     #define strdup _strdup
+    #define getcwd _getcwd
 #else
     // Linux/Mac-specific headers
     #include <unistd.h>   // For fork, execv, access
@@ -57,7 +59,7 @@ char *get_path(char *command) {
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-  const char *builtins[] = {"echo", "exit", "type"};
+  const char *builtins[] = {"echo", "exit", "type", "pwd"};
   size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
   while (1)
@@ -93,6 +95,16 @@ int main(int argc, char *argv[]) {
             if (i < arg_count - 1) printf(" ");
         }
         printf("\n");
+        continue;
+    }
+
+    if (strcmp(args[0], "pwd") == 0) {
+        char cwd[1024]; // Buffer to store the path
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            printf("%s\n", cwd);
+        } else {
+            perror("pwd failed");
+        }
         continue;
     }
 
