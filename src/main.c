@@ -288,15 +288,15 @@ int main(int argc, char *argv[]) {
     if (args[0] == NULL) continue;
 
     // --- REDIRECTION LOGIC ---
-    // UPDATED: Added variables for Standard Error
     char *stdout_file = NULL;
     char *stderr_file = NULL;
     int stdout_backup = -1;
     int stderr_backup = -1;
     int split_index = -1;
     int stdout_append = 0;
+    int stderr_append = 0;
     
-    // Scan for >, >>, 1>, 1>>, or 2>
+    // Scan for >, >>, 1>, 1>>, 2>, or 2>>
     for (int i = 0; i < arg_count; i++) {
         
         // Check for Append (>> or 1>>)
@@ -317,10 +317,20 @@ int main(int argc, char *argv[]) {
                 if (split_index == -1 || i < split_index) split_index = i;
             }
         }
+        // Check for Standard Error Append (2>>)
+        else if (strcmp(args[i], "2>>") == 0) {
+            if (i + 1 < arg_count) {
+                stderr_file = args[i+1];
+                stderr_append = 1; // Enable append mode for stderr
+                // Record the earliest redirection operator
+                if (split_index == -1 || i < split_index) split_index = i;
+            }
+        }
         // Check for Standard Error Redirection (2>)
         else if (strcmp(args[i], "2>") == 0) {
             if (i + 1 < arg_count) {
                 stderr_file = args[i+1];
+                stderr_append = 0; // Disable append mode
                 // Record the earliest redirection operator
                 if (split_index == -1 || i < split_index) split_index = i;
             }
@@ -333,7 +343,7 @@ int main(int argc, char *argv[]) {
         arg_count = split_index;
     }
 
-    // Handle STDOUT redirection
+    // 1. Handle STDOUT redirection
     if (stdout_file != NULL) {
         // Save the current stdout (terminal) so we can restore it later
         stdout_backup = dup(STDOUT_FILENO); 
@@ -365,7 +375,16 @@ int main(int argc, char *argv[]) {
     // Handle STDERR redirection
     if (stderr_file != NULL) {
         stderr_backup = dup(STDERR_FILENO); 
-        int fd = open(stderr_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+        // Set flags based on mode for stderr
+        int flags = O_WRONLY | O_CREAT;
+        if (stderr_append) {
+            flags |= O_APPEND; // Append to file
+        } else {
+            flags |= O_TRUNC;  // Overwrite file
+        }
+
+        int fd = open(stderr_file, flags, 0644);
         
         if (fd < 0) {
             perror("Failed to open stderr file");
@@ -390,7 +409,7 @@ int main(int argc, char *argv[]) {
        close(stdout_backup);
     }
 
-    // --- RESTORE STDERR (ADDED) ---
+    // --- RESTORE STDERR ---
     if (stderr_backup != -1) {
        fflush(stderr); // Good practice
        dup2(stderr_backup, STDERR_FILENO);
