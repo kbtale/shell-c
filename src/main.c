@@ -29,7 +29,14 @@
 // Returns a mallocd string of the full path, or NULL if not found.
 char *get_path(char *command) {
     // Check if command is a path (contains / or \) or exists locally
-    if (strchr(command, '/') != NULL || strchr(command, '\\') != NULL) {
+    // On Linux, only / indicates a path. On Windows, both / and \ do
+    #ifdef _WIN32
+        int is_path = (strchr(command, '/') != NULL || strchr(command, '\\') != NULL);
+    #else
+        int is_path = (strchr(command, '/') != NULL);
+    #endif
+
+    if (is_path) {
         if (access(command, 0) == 0) {
             return strdup(command);
         }
