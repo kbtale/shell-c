@@ -3,6 +3,17 @@
 #include <string.h>
 #include <fcntl.h>
 
+// --- LINUX/MAC: READLINE ---
+#ifndef _WIN32
+  #include <readline/readline.h>
+  #include <readline/history.h>
+#endif
+
+// --- WINDOWS: CONIO ---
+#ifdef _WIN32
+  #include <conio.h>
+#endif
+
 // Standard File Descriptor for generic OS
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
@@ -75,6 +86,96 @@ char *get_path(char *command) {
     free(path_copy);
     return NULL;
 }
+
+// --- LINUX: Autocomplete Logic ---
+#ifndef _WIN32
+char *command_generator(const char *text, int state) {
+    static int list_index, len;
+    char *name;
+    // The commands we want to autocomplete
+    char *commands[] = {"echo", "exit", NULL};
+
+    if (!state) {
+        list_index = 0;
+        len = strlen(text);
+    }
+
+    while ((name = commands[list_index++])) {
+        if (strncmp(name, text, len) == 0) {
+            // Readline automatically adds a trailing space for unique matches
+            return strdup(name);
+        }
+    }
+    return NULL;
+}
+
+char **builtin_completion(const char *text, int start, int end) {
+    // Only autocomplete the first word (the command itself)
+    if (start == 0) {
+        // Tell readline not to look for filenames if we handle it
+        rl_attempted_completion_over = 1; 
+        return rl_completion_matches(text, command_generator);
+    }
+    return NULL;
+}
+#endif
+// --------------------------------------------------
+
+// --- WINDOWS: Custom Input Handler ---
+#ifdef _WIN32
+void get_input_windows(char *buffer, int size) {
+    int pos = 0;
+    char c;
+    
+    printf("$ "); // Print prompt manually
+
+    while (1) {
+        c = _getch(); // Read raw keypress without echoing
+
+        // Handle Tab (Autocompletion)
+        if (c == '\t') {
+            if (pos == 3) {
+                // If user typed "ech" -> complete to "echo "
+                if (strncmp(buffer, "ech", 3) == 0) {
+                    printf("o "); // Visually complete it
+                    buffer[pos++] = 'o';
+                    buffer[pos++] = ' ';
+                } 
+                // If user typed "exi" -> complete to "exit "
+                else if (strncmp(buffer, "exi", 3) == 0) {
+                    printf("t "); // Visually complete it
+                    buffer[pos++] = 't';
+                    buffer[pos++] = ' ';
+                }
+            }
+            continue;
+        }
+
+        // Handle Enter
+        if (c == '\r' || c == '\n') {
+            printf("\n");
+            buffer[pos] = '\0';
+            break;
+        }
+
+        // Handle Backspace
+        if (c == 8) { 
+            if (pos > 0) {
+                pos--;
+                printf("\b \b"); // Move back, overwrite space, move back
+            }
+            continue;
+        }
+
+        // Handle Normal Character
+        if (pos < size - 1 && c >= 32 && c <= 126) {
+            buffer[pos++] = c;
+            printf("%c", c); // Echo the character
+        }
+    }
+}
+#endif
+// --------------------------------------------------
 
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
@@ -200,13 +301,34 @@ int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
 
+  // --- REGISTER AUTOCOMPLETE (Linux Only) ---
+  #ifndef _WIN32
+  rl_attempted_completion_function = builtin_completion;
+  #endif
+  // ------------------------------------------
+
   while (1)
   {
-    printf("$ ");
-    
     char input[100];
-    if (!fgets(input, sizeof(input), stdin)) break;
-    input[strcspn(input, "\r\n")] = '\0'; // Remove newline character
+
+    // --- INPUT HANDLING SWITCH ---
+    #ifdef _WIN32
+        // Windows: Custom input function to handle TAB
+        get_input_windows(input, sizeof(input));
+    #else
+        // Readline handles prompt and tab completion
+        char *input_ptr = readline("$ ");
+        if (!input_ptr) break; // EOF check
+        
+        // Add valid commands to history
+        if (strlen(input_ptr) > 0) add_history(input_ptr);
+        
+        // Copy to buffer to match your existing logic
+        strncpy(input, input_ptr, sizeof(input));
+        input[sizeof(input) - 1] = '\0';
+        free(input_ptr);
+    #endif
+    // -----------------------------
     
     // Tokenize
     char *args[64];
