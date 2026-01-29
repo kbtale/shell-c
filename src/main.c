@@ -70,11 +70,129 @@ char *get_path(char *command) {
     return NULL;
 }
 
+// --- EXECUTOR FUNCTION ---
+// Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
+int execute_command(char **args, int arg_count) {
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd"};
+    size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
+
+    if (strcmp(args[0], "exit") == 0) {
+        if (args[1] != NULL && strcmp(args[1], "0") == 0) return 1; // Exit signal
+        return 1; // Exit signal
+    }
+
+    if (strcmp(args[0], "echo") == 0) {
+        for (int i = 1; i < arg_count; i++) {
+            printf("%s", args[i]);
+            // Only print a space if it's NOT the last word
+            if (i < arg_count - 1) printf(" ");
+        }
+        printf("\n");
+        return 0;
+    }
+
+    if (strcmp(args[0], "pwd") == 0) {
+        char cwd[1024]; // Buffer to store the path
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            printf("%s\n", cwd);
+        } else {
+            perror("pwd failed");
+        }
+        return 0;
+    }
+
+    if (strcmp(args[0], "cd") == 0) {
+        char *path = args[1];
+        
+        // Handle the "~" alias
+        if (path != NULL && strcmp(path, "~") == 0) {
+            
+            // for Linux/Tests
+            path = getenv("HOME");
+            
+            // If that fails, Windows USERPROFILE
+            if (path == NULL) {
+                path = getenv("USERPROFILE");
+            }
+
+            if (path == NULL) {
+                printf("cd: HOME not set\n");
+                return 0;
+            }
+        }
+
+        // Directory change, 0 if true
+        if (chdir(path) != 0) {
+            printf("cd: %s: No such file or directory\n", args[1]);
+        }
+        return 0;
+    }
+
+    if (strcmp(args[0], "type") == 0) {
+      if (args[1] == NULL) return 0;
+
+      int found = 0;
+      for (int i = 0; i < num_builtins; i++) {
+        if (strcmp(args[1], builtins[i]) == 0) {
+          printf("%s is a shell builtin\n", args[1]);
+          found = 1;
+          break;
+        }
+      }
+      
+      if (!found) {
+         char *path = get_path(args[1]); 
+         
+         if (path) {
+             printf("%s is %s\n", args[1], path);
+             free(path); 
+         } else {
+             printf("%s: not found\n", args[1]);
+         }
+      }
+      return 0;
+    }
+
+    // External Program Execution
+    char *command_path = get_path(args[0]);
+
+    // FALLBACK: If NOT in PATH, check if it exists in the current directory
+    if (command_path == NULL) {
+        // Use 0 (F_OK) to check existence. 
+        if (access(args[0], 0) == 0) {
+            // prepend "./" for execv to work on Linux
+            // "myprog" -> "./myprog"
+            char *relative_path = malloc(strlen(args[0]) + 3);
+            sprintf(relative_path, "./%s", args[0]);
+            command_path = relative_path;
+        }
+    }
+
+    if (command_path != NULL) {
+        #ifdef _WIN32
+            // Windows execution
+            _spawnv(_P_WAIT, command_path, args);
+        #else
+            // Linux execution
+            pid_t pid = fork();
+            if (pid == 0) {
+                execv(command_path, args); // Run the program
+                exit(1); // Only reached if execv fails
+            } else {
+                wait(NULL); // Wait for it to finish
+            }
+        #endif
+        free(command_path);
+    } else {
+        printf("%s: command not found\n", args[0]);
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
-  const char *builtins[] = {"echo", "exit", "type", "pwd", "cd"};
-  size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
   while (1)
   {
@@ -95,7 +213,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < strlen(input); i++) {
         char c = input[i];
 
-// --- Handle Backslash Escaping ---
+    // --- Handle Backslash Escaping ---
         if (c == '\\') {
             int should_escape = 0;
             
@@ -163,6 +281,7 @@ int main(int argc, char *argv[]) {
 
     if (args[0] == NULL) continue;
 
+    // --- REDIRECTION LOGIC ---
     char *output_file = NULL;
     int stdout_backup = -1;
 
@@ -201,126 +320,32 @@ int main(int argc, char *argv[]) {
         // 4. Close the raw file descriptor (stdout now holds the reference)
         close(fd);
     }
+
+    // --- EXECUTE COMMAND ---
+    // Now we delegate the actual running to our helper function.
+    // This function doesn't know about redirection, it just writes to stdout.
+    int should_exit = execute_command(args, arg_count);
+
+    // --- RESTORE STDOUT ---
+    // Restore stdout to the terminal immediately after execution
+    if (stdout_backup != -1) {
+       fflush(stdout); // Flush before swapping back
+       dup2(stdout_backup, STDOUT_FILENO);
+       close(stdout_backup);
+    }
     
-    if (strcmp(args[0], "exit") == 0) {
-        if (args[1] != NULL && strcmp(args[1], "0") == 0) return 0;
-        return 0;
+    // Check if we need to exit the shell loop
+    if (should_exit) {
+        // Free args before breaking
+        for (int i = 0; i < arg_count; i++) {
+           free(args[i]);
+        }
+        break;
     }
-
-    if (strcmp(args[0], "echo") == 0) {
-        for (int i = 1; i < arg_count; i++) {
-            printf("%s", args[i]);
-            // Only print a space if it's NOT the last word
-            if (i < arg_count - 1) printf(" ");
-        }
-        printf("\n");
-        continue;
-    }
-
-    if (strcmp(args[0], "pwd") == 0) {
-        char cwd[1024]; // Buffer to store the path
-        if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            printf("%s\n", cwd);
-        } else {
-            perror("pwd failed");
-        }
-        continue;
-    }
-
-if (strcmp(args[0], "cd") == 0) {
-        char *path = args[1];
-        
-        // Handle the "~" alias
-        if (path != NULL && strcmp(path, "~") == 0) {
-            
-            // for Linux/Tests
-            path = getenv("HOME");
-            
-            // If that fails, Windows USERPROFILE
-            if (path == NULL) {
-                path = getenv("USERPROFILE");
-            }
-
-            if (path == NULL) {
-                printf("cd: HOME not set\n");
-                continue;
-            }
-        }
-
-        // Directory change, 0 if true
-        if (chdir(path) != 0) {
-            printf("cd: %s: No such file or directory\n", args[1]);
-        }
-        continue;
-    }
-
-    if (strcmp(args[0], "type") == 0) {
-      if (args[1] == NULL) continue;
-
-      int found = 0;
-      for (int i = 0; i < num_builtins; i++) {
-        if (strcmp(args[1], builtins[i]) == 0) {
-          printf("%s is a shell builtin\n", args[1]);
-          found = 1;
-          break;
-        }
-      }
       
-      if (!found) {
-         char *path = get_path(args[1]); 
-         
-         if (path) {
-             printf("%s is %s\n", args[1], path);
-             free(path); 
-         } else {
-             printf("%s: not found\n", args[1]);
-         }
-      }
-      continue;
+    for (int i = 0; i < arg_count; i++) {
+       free(args[i]);
     }
-
-    // External Program Execution
-    char *command_path = get_path(args[0]);
-
-    // FALLBACK: If NOT in PATH, check if it exists in the current directory
-    if (command_path == NULL) {
-        // Use 0 (F_OK) to check existence. 
-        if (access(args[0], 0) == 0) {
-            // prepend "./" for execv to work on Linux
-            // "myprog" -> "./myprog"
-            char *relative_path = malloc(strlen(args[0]) + 3);
-            sprintf(relative_path, "./%s", args[0]);
-            command_path = relative_path;
-        }
-    }
-
-    if (command_path != NULL) {
-        #ifdef _WIN32
-            // Windows execution
-            _spawnv(_P_WAIT, command_path, args);
-        #else
-            // Linux execution
-            pid_t pid = fork();
-            if (pid == 0) {
-                execv(command_path, args); // Run the program
-                exit(1); // Only reached if execv fails
-            } else {
-                wait(NULL); // Wait for it to finish
-            }
-        #endif
-        free(command_path);
-    } else {
-        printf("%s: command not found\n", args[0]);
-    }
-      if (stdout_backup != -1) {
-        // Restore stdout to the terminal
-        dup2(stdout_backup, STDOUT_FILENO);
-        close(stdout_backup);
-      }
-        
-      for (int i = 0; i < arg_count; i++) {
-        free(args[i]);
-      }
 
   }
   return 0;
