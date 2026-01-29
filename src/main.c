@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
             else if (quote_char == '"') {
                 if (i + 1 < strlen(input)) {
                     char next_c = input[i+1];
-                    if (next_c == '"' || next_c == '\\' || next_c == '$' || next_c == '\n') {
+                    if (next_c == '"' || next_c == '\\' || next_c == '$' || next_c == '\n' || next_c == '\'') {
                         should_escape = 1;
                     }
                 }
