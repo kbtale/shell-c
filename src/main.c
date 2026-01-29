@@ -24,6 +24,11 @@
 #ifndef STDERR_FILENO
 #define STDERR_FILENO 2
 #endif
+
+// Standard Input Definition
+#ifndef STDIN_FILENO
+#define STDIN_FILENO 0
+#endif
 // ----------------------------------------
 
 // --- CROSS-PLATFORM SETUP ---
@@ -526,6 +531,77 @@ int main(int argc, char *argv[]) {
     args[arg_count] = NULL; // Null-terminate the list
 
     if (args[0] == NULL) continue;
+
+    // --- PIPELINE LOGIC ---
+    // Check for pipe '|' symbol
+    int pipe_index = -1;
+    for (int i = 0; i < arg_count; i++) {
+        if (strcmp(args[i], "|") == 0) {
+            pipe_index = i;
+            break;
+        }
+    }
+
+    if (pipe_index != -1) {
+        #ifndef _WIN32
+            // Split arguments
+            args[pipe_index] = NULL;
+            char **left_args = args;
+            char **right_args = &args[pipe_index + 1];
+
+            // Create Pipe
+            int pipefd[2]; // pipefd[0] = read end, pipefd[1] = write end
+            if (pipe(pipefd) == -1) {
+                perror("pipe");
+                // Cleanup logic
+                for (int i = 0; i < arg_count; i++) if(args[i]) free(args[i]);
+                continue;
+            }
+
+            // Fork First Child (Left Command)
+            pid_t pid1 = fork();
+            if (pid1 == 0) {
+                // Child 1: Redirect STDOUT to Pipe Write End
+                dup2(pipefd[1], STDOUT_FILENO);
+                close(pipefd[0]);
+                close(pipefd[1]);
+
+                // Reuse existing executor (recursively checks path, etc)
+                // Note: arg_count passed here is strictly for the left side
+                execute_command(left_args, pipe_index);
+                exit(0);
+            }
+
+            // Fork Second Child (Right Command)
+            pid_t pid2 = fork();
+            if (pid2 == 0) {
+                // Child 2: Redirect STDIN from Pipe Read End
+                dup2(pipefd[0], STDIN_FILENO);
+                close(pipefd[1]);
+                close(pipefd[0]);
+
+                // Execute right side
+                execute_command(right_args, arg_count - pipe_index - 1);
+                exit(0);
+            }
+
+            // Parent Cleanup
+            close(pipefd[0]);
+            close(pipefd[1]);
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+
+        #else
+            printf("Pipelines not fully supported on Windows in this shell.\n");
+        #endif
+
+        // Free memory and skip the rest of the loop
+        for (int i = 0; i < arg_count; i++) {
+             if (args[i]) free(args[i]);
+        }
+        continue;
+    }
+    // -------------------------------------
 
     // --- REDIRECTION LOGIC ---
     char *stdout_file = NULL;
