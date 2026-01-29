@@ -8,6 +8,12 @@
 #define STDOUT_FILENO 1
 #endif
 
+// Standard Error Definition
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
+// ----------------------------------------
+
 // --- CROSS-PLATFORM SETUP ---
 #ifdef _WIN32
     // Windows-specific headers
@@ -282,48 +288,79 @@ int main(int argc, char *argv[]) {
     if (args[0] == NULL) continue;
 
     // --- REDIRECTION LOGIC ---
-    char *output_file = NULL;
+    // UPDATED: Added variables for Standard Error
+    char *stdout_file = NULL;
+    char *stderr_file = NULL;
     int stdout_backup = -1;
+    int stderr_backup = -1;
+    int split_index = -1;
 
-    // Scan for > or 1>
+    // Scan for >, 1>, or 2>
     for (int i = 0; i < arg_count; i++) {
+        
+        // Check for Standard Output Redirection (> or 1>)
         if (strcmp(args[i], ">") == 0 || strcmp(args[i], "1>") == 0) {
             if (i + 1 < arg_count) {
-                output_file = args[i+1];
-                
-                // Cut off the arguments array here so the command 
-                // doesn't see the redirection operator or filename.
-                args[i] = NULL; 
-                arg_count = i; // Update count
+                stdout_file = args[i+1];
+                // Record the earliest redirection operator to cut the string later
+                if (split_index == -1 || i < split_index) split_index = i;
             }
-            break; 
+        }
+        // Check for Standard Error Redirection (2>)
+        else if (strcmp(args[i], "2>") == 0) {
+            if (i + 1 < arg_count) {
+                stderr_file = args[i+1];
+                // Record the earliest redirection operator
+                if (split_index == -1 || i < split_index) split_index = i;
+            }
         }
     }
 
-    // If redirection was found, swap stdout
-    if (output_file != NULL) {
-        // 1. Save the current stdout (terminal) so we can restore it later
+    // Truncate the args array so the command doesn't see filenames
+    if (split_index != -1) {
+        args[split_index] = NULL;
+        arg_count = split_index;
+    }
+
+    // 1. Handle STDOUT redirection
+    if (stdout_file != NULL) {
+        // Save the current stdout (terminal) so we can restore it later
         stdout_backup = dup(STDOUT_FILENO); 
 
-        // 2. Open the file (Create if missing, Truncate if exists, Write only)
+        // Open the file (Create if missing, Truncate if exists, Write only)
         // 0644 gives read/write to owner, read to others
-        int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        int fd = open(stdout_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         
         if (fd < 0) {
-            perror("Failed to open file");
+            perror("Failed to open stdout file");
             continue;
         }
 
-        // 3. Replace stdout (fd 1) with our file descriptor
+        // Replace stdout (fd 1) with our file descriptor
         dup2(fd, STDOUT_FILENO);
         
-        // 4. Close the raw file descriptor (stdout now holds the reference)
+        // Close the raw file descriptor (stdout now holds the reference)
+        close(fd);
+    }
+
+    // 2. Handle STDERR redirection (ADDED)
+    if (stderr_file != NULL) {
+        stderr_backup = dup(STDERR_FILENO); 
+        int fd = open(stderr_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        
+        if (fd < 0) {
+            perror("Failed to open stderr file");
+            // If stderr fails, restore stdout before continuing
+            if (stdout_backup != -1) { dup2(stdout_backup, STDOUT_FILENO); close(stdout_backup); }
+            continue;
+        }
+        dup2(fd, STDERR_FILENO);
         close(fd);
     }
 
     // --- EXECUTE COMMAND ---
-    // Now we delegate the actual running to our helper function.
-    // This function doesn't know about redirection, it just writes to stdout.
+    // delegate the actual running to the helper function.
+    // This function doesn't know about redirection, it just writes to stdout/stderr.
     int should_exit = execute_command(args, arg_count);
 
     // --- RESTORE STDOUT ---
@@ -333,8 +370,15 @@ int main(int argc, char *argv[]) {
        dup2(stdout_backup, STDOUT_FILENO);
        close(stdout_backup);
     }
+
+    // --- RESTORE STDERR (ADDED) ---
+    if (stderr_backup != -1) {
+       fflush(stderr); // Good practice
+       dup2(stderr_backup, STDERR_FILENO);
+       close(stderr_backup);
+    }
     
-    // Check if we need to exit the shell loop
+    // Check if it has to exit the shell loop
     if (should_exit) {
         // Free args before breaking
         for (int i = 0; i < arg_count; i++) {
