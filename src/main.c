@@ -294,14 +294,25 @@ int main(int argc, char *argv[]) {
     int stdout_backup = -1;
     int stderr_backup = -1;
     int split_index = -1;
-
-    // Scan for >, 1>, or 2>
+    int stdout_append = 0;
+    
+    // Scan for >, >>, 1>, 1>>, or 2>
     for (int i = 0; i < arg_count; i++) {
         
+        // Check for Append (>> or 1>>)
+        if (strcmp(args[i], ">>") == 0 || strcmp(args[i], "1>>") == 0) {
+             if (i + 1 < arg_count) {
+                stdout_file = args[i+1];
+                stdout_append = 1; // Enable append mode
+                // Record the earliest redirection operator to cut the string later
+                if (split_index == -1 || i < split_index) split_index = i;
+            }
+        }
         // Check for Standard Output Redirection (> or 1>)
-        if (strcmp(args[i], ">") == 0 || strcmp(args[i], "1>") == 0) {
+        else if (strcmp(args[i], ">") == 0 || strcmp(args[i], "1>") == 0) {
             if (i + 1 < arg_count) {
                 stdout_file = args[i+1];
+                stdout_append = 0; // Disable append mode
                 // Record the earliest redirection operator to cut the string later
                 if (split_index == -1 || i < split_index) split_index = i;
             }
@@ -322,14 +333,22 @@ int main(int argc, char *argv[]) {
         arg_count = split_index;
     }
 
-    // 1. Handle STDOUT redirection
+    // Handle STDOUT redirection
     if (stdout_file != NULL) {
         // Save the current stdout (terminal) so we can restore it later
         stdout_backup = dup(STDOUT_FILENO); 
 
-        // Open the file (Create if missing, Truncate if exists, Write only)
+        // Set flags based on mode
+        int flags = O_WRONLY | O_CREAT;
+        if (stdout_append) {
+            flags |= O_APPEND; // Append to file
+        } else {
+            flags |= O_TRUNC;  // Overwrite file
+        }
+
+        // Open the file (Create if missing, Truncate/Append, Write only)
         // 0644 gives read/write to owner, read to others
-        int fd = open(stdout_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        int fd = open(stdout_file, flags, 0644);
         
         if (fd < 0) {
             perror("Failed to open stdout file");
@@ -343,7 +362,7 @@ int main(int argc, char *argv[]) {
         close(fd);
     }
 
-    // 2. Handle STDERR redirection (ADDED)
+    // Handle STDERR redirection
     if (stderr_file != NULL) {
         stderr_backup = dup(STDERR_FILENO); 
         int fd = open(stderr_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
