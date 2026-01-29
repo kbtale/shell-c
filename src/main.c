@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+
+// Standard File Descriptor for generic OS
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
 
 // --- CROSS-PLATFORM SETUP ---
 #ifdef _WIN32
@@ -156,6 +162,45 @@ int main(int argc, char *argv[]) {
     args[arg_count] = NULL; // Null-terminate the list
 
     if (args[0] == NULL) continue;
+
+    char *output_file = NULL;
+    int stdout_backup = -1;
+
+    // Scan for > or 1>
+    for (int i = 0; i < arg_count; i++) {
+        if (strcmp(args[i], ">") == 0 || strcmp(args[i], "1>") == 0) {
+            if (i + 1 < arg_count) {
+                output_file = args[i+1];
+                
+                // Cut off the arguments array here so the command 
+                // doesn't see the redirection operator or filename.
+                args[i] = NULL; 
+                arg_count = i; // Update count
+            }
+            break; 
+        }
+    }
+
+    // If redirection was found, swap stdout
+    if (output_file != NULL) {
+        // 1. Save the current stdout (terminal) so we can restore it later
+        stdout_backup = dup(STDOUT_FILENO); 
+
+        // 2. Open the file (Create if missing, Truncate if exists, Write only)
+        // 0644 gives read/write to owner, read to others
+        int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        
+        if (fd < 0) {
+            perror("Failed to open file");
+            continue;
+        }
+
+        // 3. Replace stdout (fd 1) with our file descriptor
+        dup2(fd, STDOUT_FILENO);
+        
+        // 4. Close the raw file descriptor (stdout now holds the reference)
+        close(fd);
+    }
     
     if (strcmp(args[0], "exit") == 0) {
         if (args[1] != NULL && strcmp(args[1], "0") == 0) return 0;
@@ -266,10 +311,16 @@ if (strcmp(args[0], "cd") == 0) {
         free(command_path);
     } else {
         printf("%s: command not found\n", args[0]);
-        for (int i = 0; i < arg_count; i++) {
+    }
+      if (stdout_backup != -1) {
+        // Restore stdout to the terminal
+        dup2(stdout_backup, STDOUT_FILENO);
+        close(stdout_backup);
+      }
+        
+      for (int i = 0; i < arg_count; i++) {
         free(args[i]);
-    }
-    }
+      }
 
   }
   return 0;
