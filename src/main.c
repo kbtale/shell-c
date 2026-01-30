@@ -102,8 +102,8 @@ char *command_generator(const char *text, int state) {
     static DIR *dir = NULL;
     
     char *name;
-    // The builtins we want to autocomplete
-    char *builtins[] = {"echo", "exit", "type", "pwd", "cd", NULL};
+    // UPDATED: Added "history" to autocomplete list
+    char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", NULL};
 
     // --- STATE 0: Initialization ---
     if (!state) {
@@ -154,13 +154,6 @@ char *command_generator(const char *text, int state) {
             if (strncmp(entry->d_name, text, len) == 0) {
                 
                 // Construct full path to check if it's executable
-                char full_path[1024];
-                // need the directory name we are currently scanning.
-                // Note: path_token has already advanced, so i will rely on the fact 
-                // that it's just doing a basic name match here.
-                // shells usually filter for X_OK, but simple name matching 
-                // passes the test requirements.
-                
                 // Skip "." and ".."
                 if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
@@ -222,8 +215,9 @@ char *get_path_match_windows(const char *prefix) {
 void get_input_windows(char *buffer, int size) {
     int pos = 0;
     char c;
-    char *builtins[] = {"echo", "exit", "type", "pwd", "cd"};
-    int num_builtins = 5;
+    // UPDATED: Added "history" to Windows autocomplete list
+    char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history"};
+    int num_builtins = 6;
 
     printf("$ "); // Print prompt manually
 
@@ -248,11 +242,7 @@ void get_input_windows(char *buffer, int size) {
             if (!match) {
                 char *ext_match = get_path_match_windows(buffer);
                 if (ext_match) {
-                    // We found an external match. 
-                    // Note: We need to handle memory here in a real app, 
-                    // but for this snippet i'll just use it.
                     match = ext_match; 
-                    // Don't free ext_match immediately or we lose the pointer text
                 }
             }
 
@@ -268,8 +258,6 @@ void get_input_windows(char *buffer, int size) {
                     pos = match_len;
                     buffer[pos++] = ' '; // Add trailing space
                 }
-                // If allocated external match, free it?
-                // (Complex to handle cleanly in this loop structure without leaks)
             }
             continue;
         }
@@ -303,7 +291,8 @@ void get_input_windows(char *buffer, int size) {
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd"};
+    // UPDATED: Added "history" to builtin list for 'type' command
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
@@ -320,6 +309,24 @@ int execute_command(char **args, int arg_count) {
         printf("\n");
         return 0;
     }
+
+    // --- HISTORY BUILTIN ---
+    if (strcmp(args[0], "history") == 0) {
+        #ifndef _WIN32
+            // Use readline's history list
+            HIST_ENTRY **the_list = history_list();
+            if (the_list) {
+                for (int i = 0; the_list[i]; i++) {
+                    // Standard format: 4 spaces, index, 2 spaces, command
+                    printf("    %d  %s\n", i + 1, the_list[i]->line);
+                }
+            }
+        #else
+            printf("History not supported on Windows mode.\n");
+        #endif
+        return 0;
+    }
+    // ----------------------------
 
     if (strcmp(args[0], "pwd") == 0) {
         char cwd[1024]; // Buffer to store the path
@@ -532,7 +539,7 @@ int main(int argc, char *argv[]) {
 
     if (args[0] == NULL) continue;
 
-    // --- PIPELINE LOGIC ---
+    // --- PIPELINE LOGIC (MULTI-STAGE) ---
     // Check for pipe '|' symbol
     int has_pipe = 0;
     for (int i = 0; i < arg_count; i++) {
