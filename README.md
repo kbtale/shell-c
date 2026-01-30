@@ -1,7 +1,7 @@
 [![progress-banner](https://backend.codecrafters.io/progress/shell/b32f75ea-fd02-4beb-b67c-f80935c9c241)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
-This is a starting point for C solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+This is a completed C solution for the
+["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview), plus some extra features I added later.
 
 In this challenge, you'll build your own POSIX compliant shell that's capable of
 interpreting shell commands, running external programs and builtin commands like
@@ -11,24 +11,36 @@ REPLs, builtin commands, and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
-# Passing the first stage
+# Features
 
-The entry point for your `shell` implementation is in `src/main.c`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
+- Cross-platform support (Linux/macOS via `fork`/`exec`, Windows via `_spawnv`).
+- Interactive REPL with a `$ ` prompt.
+- Builtins: `echo`, `exit`, `type`, `pwd`, `cd`, `history`, `cshell`.
+- External command execution via `PATH` lookup, with a fallback to current directory.
+- Command parsing with:
+   - Single and double quotes.
+   - Backslash escaping (context-aware inside/outside quotes).
+- Pipeline support (`|`) on non-Windows platforms (multi-stage pipelines).
+- Redirection support:
+   - `>` / `1>` for stdout overwrite
+   - `>>` / `1>>` for stdout append
+   - `2>` for stderr overwrite
+   - `2>>` for stderr append
+- History support on non-Windows platforms:
+   - Persistent history load/save via `HISTFILE`.
+   - `history -r <file>`, `history -w <file>`, `history -a <file>`.
+   - `history [N]` to show the last N entries.
+- Tab autocomplete:
+   - Linux/macOS: Readline completion for builtins and `PATH` executables.
+   - Windows: Custom TAB completion for builtins and `PATH` executables.
+- ANSI color support for Windows terminals.
+- Startup splash screen with randomized ASCII art and rotating status messages.
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
-```
+# Challenge status
 
-Time to move on to the next stage!
+This repository contains a completed solution for the CodeCrafters “Build Your Own Shell” challenge.
 
-# Stage 2 & beyond
+# Running locally
 
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.c`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+1. Ensure you have `cmake` installed locally.
+1. Run `./your_program.sh` to build and run the shell (implemented in `src/main.c`).

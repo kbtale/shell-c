@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <time.h>
 #include <fcntl.h>
 
 // --- LINUX/MAC: READLINE & DIRENT ---
@@ -37,9 +37,17 @@
     #include <io.h>       // For _access, _findfirst
     #include <process.h>  // For _spawnv (The Windows version of fork/exec)
     #include <direct.h>
+    #include <windows.h>
+
+    void usleep(int microseconds) {
+        Sleep(microseconds / 1000); 
+    }
 
     // Windows mappings to match Linux names
     #define access _access
+    #ifdef X_OK
+        #undef X_OK
+    #endif
     #define X_OK 0
     #define PATH_DELIMITER ";"
     #define strdup _strdup
@@ -298,15 +306,344 @@ void get_input_windows(char *buffer, int size) {
 #endif
 // --------------------------------------------------
 
+void print_start_screen(int show_all) {
+    if (!show_all) printf("\033[H\033[J");
+
+    // Colors
+    char *cyan = "\033[1;36m";
+    char *green = "\033[1;32m";
+    char *magenta = "\033[1;35m";
+    char *yellow = "\033[1;33m";
+    char *red = "\033[1;31m";
+    char *blue = "\033[1;34m";
+    char *reset = "\033[0m";
+
+    srand(time(NULL));
+
+    // --- DATA DEFINITIONS ---
+    
+    // HEIGHT 21
+    const char *h21[][22] = {
+        {
+            "          _____                    _____                    _____                    _____                    _____            _____  ",
+            "         /\\    \\                  /\\    \\                  /\\    \\                  /\\    \\                  /\\    \\          /\\    \\ ",
+            "        /::\\    \\                /::\\    \\                /::\\____\\                /::\\    \\                /::\\____\\        /::\\____\\",
+            "       /::::\\    \\              /::::\\    \\              /:::/    /               /::::\\    \\              /:::/    /       /:::/    /",
+            "      /::::::\\    \\            /::::::\\    \\            /:::/    /               /::::::\\    \\            /:::/    /       /:::/    / ",
+            "     /:::/\\:::\\    \\          /:::/\\:::\\    \\          /:::/    /               /:::/\\:::\\    \\          /:::/    /       /:::/    /  ",
+            "    /:::/  \\:::\\    \\        /:::/__\\:::\\    \\        /:::/____/               /:::/__\\:::\\    \\        /:::/    /       /:::/    /   ",
+            "   /:::/    \\:::\\    \\       \\:::\\   \\:::\\    \\      /::::\\    \\              /::::\\   \\:::\\    \\      /:::/    /       /:::/    /    ",
+            "  /:::/    / \\:::\\    \\    ___\\:::\\   \\:::\\    \\    /::::::\\    \\   _____    /::::::\\   \\:::\\    \\    /:::/    /       /:::/    /     ",
+            " /:::/    /   \\:::\\    \\  /\\   \\:::\\   \\:::\\    \\  /:::/\\:::\\    \\ /\\    \\  /:::/\\:::\\   \\:::\\    \\  /:::/    /       /:::/    /      ",
+            "/:::/____/     \\:::\\____\\/::\\   \\:::\\   \\:::\\____\\/:::/  \\:::\\    /::\\____\\/:::/__\\:::\\   \\:::\\____\\/:::/____/       /:::/____/       ",
+            "\\:::\\    \\      \\::/    /\\:::\\   \\:::\\   \\::/    /\\::/    \\:::\\  /:::/    /\\:::\\   \\:::\\   \\::/    /\\:::\\    \\       \\:::\\    \\       ",
+            " \\:::\\    \\      \\/____/  \\:::\\   \\:::\\   \\/____/  \\/____/ \\:::\\/:::/    /  \\:::\\   \\:::\\   \\/____/  \\:::\\    \\       \\:::\\    \\      ",
+            "  \\:::\\    \\               \\:::\\   \\:::\\    \\               \\::::::/    /    \\:::\\   \\:::\\    \\       \\:::\\    \\       \\:::\\    \\     ",
+            "   \\:::\\    \\               \\:::\\   \\:::\\____\\               \\::::/    /      \\:::\\   \\:::\\____\\       \\:::\\    \\       \\:::\\    \\    ",
+            "    \\:::\\    \\               \\:::\\  /:::/    /               /:::/    /        \\:::\\   \\::/    /        \\:::\\    \\       \\:::\\    \\   ",
+            "     \\:::\\    \\               \\:::\\/:::/    /               /:::/    /          \\:::\\   \\/____/          \\:::\\    \\       \\:::\\    \\  ",
+            "      \\:::\\    \\               \\::::::/    /               /:::/    /            \\:::\\    \\               \\:::\\    \\       \\:::\\    \\ ",
+            "       \\:::\\____\\               \\::::/    /               /:::/    /              \\:::\\____\\               \\:::\\____\\       \\:::\\____\\",
+            "        \\::/    /                \\::/    /                \\::/    /                \\::/    /                \\::/    /        \\::/    /",
+            "         \\/____/                  \\/____/                  \\/____/                  \\/____/                  \\/____/          \\/____/ ",
+            NULL
+        }
+    };
+
+    // HEIGHT 15
+    const char *h15[][16] = {
+        {
+            "                                                ,--,      ,--,    ",
+            "                               ,--,          ,---.'|   ,---.'|    ",
+            "  ,----..    .--.--.         ,--.'|    ,---,.|   | :   |   | :    ",
+            " /   /   \\  /  /    '.    ,--,  | :  ,'  .' |:   : |   :   : |    ",
+            "|   :     :|  :  /`. / ,---.'|  : ',---.'   ||   ' :   |   ' :    ",
+            ".   |  ;. /;  |  |--`  |   | : _' ||   |   .';   ; '   ;   ; '    ",
+            ".   ; /--` |  :  ;_    :   : |.'  |:   :  |-,'   | |__ '   | |__  ",
+            ";   | ;     \\  \\    `. |   ' '  ; ::   |  ;/||   | :.'||   | :.'| ",
+            "|   : |      `----.   \\'   |  .'. ||   :   .''   :    ;'   :    ; ",
+            ".   | '___   __ \\  \\  ||   | :  | '|   |  |-,|   |  ./ |   |  ./  ",
+            "'   ; : .'| /  /`--'  /'   : |  : ;'   :  ;/|;   : ;   ;   : ;    ",
+            "'   | '/  :'--'.     / |   | '  ,/ |   |    \\|   ,/    |   ,/     ",
+            "|   :    /   `--'---'  ;   : ;--'  |   :   .''---'     '---'      ",
+            " \\   \\ .'              |   ,/      |   | ,'                       ",
+            "  `---`                '---'       `----'                         ",
+            NULL
+        }
+    };
+
+    // HEIGHT 10
+    const char *h10[][11] = {
+        {
+            "        /\\ \\          / /\\         / /\\    / /\\ /\\ \\         _\\ \\          _\\ \\   ",
+            "       /  \\ \\        / /  \\       / / /   / / //  \\ \\       /\\__ \\        /\\__ \\  ",
+            "      / /\\ \\ \\      / / /\\ \\__   / /_/   / / // /\\ \\ \\     / /_ \\_\\      / /_ \\_\\ ",
+            "     / / /\\ \\ \\    / / /\\ \\___\\ / /\\ \\__/ / // / /\\ \\_\\   / / /\\/_/     / / /\\/_/ ",
+            "    / / /  \\ \\_\\   \\ \\ \\ \\/___// /\\ \\___\\/ // /_/_ \\/_/  / / /         / / /      ",
+            "   / / /    \\/_/    \\ \\ \\     / / /\\/___/ // /____/\\    / / /         / / /       ",
+            "  / / /         _    \\ \\ \\   / / /   / / // /\\____\\/   / / / ____    / / / ____   ",
+            " / / /________ /_/\\__/ / /  / / /   / / // / /______  / /_/_/ ___/\\ / /_/_/ ___/\\ ",
+            "/ / /_________\\\\ \\/___/ /  / / /   / / // / /_______\\/_______/\\__\\//_______/\\__\\/ ",
+            "\\/____________/ \\_____\\/   \\/_/    \\/_/ \\/__________/\\_______\\/    \\_______\\/     ",
+            NULL
+        }
+    };
+
+    // HEIGHT 9
+    const char *h9[][10] = {
+        {
+            "   ______    ______   __    __  ________  __        __       ",
+            "  /      \\  /      \\ |  \\  |  \\|        \\|  \\      |  \\      ",
+            " |  $$$$$$\\|  $$$$$$\\| $$  | $$| $$$$$$$$| $$      | $$      ",
+            " | $$   \\$$| $$___\\$$| $$__| $$| $$__    | $$      | $$      ",
+            " | $$       \\$$    \\ | $$    $$| $$  \\   | $$      | $$      ",
+            " | $$   __  _\\$$$$$$\\| $$$$$$$$| $$$$$   | $$      | $$      ",
+            " | $$__/  \\|  \\__| $$| $$  | $$| $$_____ | $$_____ | $$_____ ",
+            "  \\$$    $$ \\$$    $$| $$  | $$| $$     \\| $$     \\| $$     \\",
+            "   \\$$$$$$   \\$$$$$$  \\$$   \\$$ \\$$$$$$$$ \\$$$$$$$$ \\$$$$$$$$",
+            NULL
+        },
+        {
+            " ________/\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\\\\\\\___/\\\\\\________/\\\\\\__/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\__/\\\\\\______________/\\\\\\_____________        ",
+            " _____/\\\\\\////////____/\\\\\\/////////\\\\\\_\\/\\\\\\_______\\/\\\\\\_\\/\\\\\\///////////__\\/\\\\\\_____________\\/\\\\\\_____________       ",
+            "  ___/\\\\\\/____________\\//\\\\\\______\\///__\\/\\\\\\_______\\/\\\\\\_\\/\\\\\\_____________\\/\\\\\\_____________\\/\\\\\\_____________      ",
+            "   __/\\\\\\_______________\\////\\\\\\_________\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\\\\\\\\\\\\\\\\\_____\\/\\\\\\_____________\\/\\\\\\_____________     ",
+            "    _\\/\\\\\\__________________\\////\\\\\\______\\/\\\\\\/////////\\\\\\_\\/\\\\\\///////______\\/\\\\\\_____________\\/\\\\\\_____________    ",
+            "     _\\//\\\\\\____________________\\////\\\\\\___\\/\\\\\\_______\\/\\\\\\_\\/\\\\\\_____________\\/\\\\\\_____________\\/\\\\\\_____________   ",
+            "      __\\///\\\\\\___________/\\\\\\______\\//\\\\\\__\\/\\\\\\_______\\/\\\\\\_\\/\\\\\\_____________\\/\\\\\\_____________\\/\\\\\\_____________  ",
+            "       ____\\////\\\\\\\\\\\\\\\\\\_\\///\\\\\\\\\\\\\\\\\\\\\\/___\\/\\\\\\_______\\/\\\\\\_\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_ ",
+            "        _______\\/////////____\\///////////_____\\///________\\///__\\///////////////__\\///////////////__\\///////////////__",
+            NULL
+        },
+        {
+            "                    `Yb.           .dP'                         ",
+            "                     `Yb        dP'                            ",
+            "                       Yb                                      ",
+            ".dP'  dP' .d888b.       Yb       'Yb   `Y8888888b. `Y8888888b. ",
+            "88    88  8'   `Yb     dPYb       88      .dP'        .dP'     ",
+            "Y8   .88  Yb.   88   ,dP  Yb      88    ,dP         ,dP        ",
+            "`Y88P'88      .dP  .dP'    `Yb.  .8P    88     .    88     .   ",
+            "      88    .dP'                        `Yb...dP    `Yb...dP   ",
+            "      88  .dP'                            `\"\"\"'       `\"\"\"'    ",
+            NULL
+        }
+    };
+
+    // HEIGHT 8
+    const char *h8[][9] = {
+        {
+            "  ,ad8888ba,    ad88888ba   88        88  88888888888  88           88           ",
+            " d8\"'    `\"8b  d8\"     \"8b  88        88  88           88           88           ",
+            "d8'            Y8,          88        88  88           88           88           ",
+            "88             `Y8aaaaa,    88aaaaaaaa88  88aaaaa      88           88           ",
+            "88               `\"\"\"\"\"8b,  88\"\"\"\"\"\"\"\"88  88\"\"\"\"\"      88           88           ",
+            "Y8,                    `8b  88        88  88           88           88           ",
+            " Y8a.    .a8P  Y8a     a8P  88        88  88           88           88           ",
+            "  `\"Y8888Y\"'    \"Y88888P\"   88        88  88888888888  88888888888  88888888888  ",
+            NULL
+        }
+    };
+
+    // HEIGHT 6
+    const char *h6[][7] = {
+        {
+            " _________   _________ ___ ______________.____    .____     ",
+            " \\_   ___ \\ /   _____//   |   \\_   _____/|    |   |    |    ",
+            " /    \\  \\/ \\_____  \\/    ~    \\    __)_ |    |   |    |    ",
+            " \\     \\____/        \\    Y    /        \\|    |___|    |___ ",
+            "  \\______  /_______  /\\___|_  /_______  /|_______ \\_______ \\",
+            "         \\/        \\/       \\/        \\/         \\/       \\/",
+            NULL
+        },
+        {
+            "  ██████╗     ███████╗    ██╗  ██╗    ███████╗    ██╗         ██╗     ",
+            " ██╔════╝     ██╔════╝    ██║  ██║    ██╔════╝    ██║         ██║     ",
+            " ██║          ███████╗    ███████║    █████╗      ██║         ██║     ",
+            " ██║          ╚════██║    ██╔══██║    ██╔══╝      ██║         ██║     ",
+            " ╚██████╗     ███████║    ██║  ██║    ███████╗    ███████╗    ███████╗",
+            "  ╚═════╝     ╚══════╝    ╚═╝  ╚═╝    ╚══════╝    ╚══════╝    ╚══════╝",
+            NULL
+        }
+    };
+
+    if (show_all) {
+        printf("\n\033[1;32m--- THEME GALLERY ---\033[0m\n\n");
+
+        printf("\033[1;35m[ 3D CUBES ]\033[0m\n");
+        for(int i=0; h21[0][i]; i++) printf("\033[1;35m%s\n", h21[0][i]);
+        
+        printf("\n\033[1;32m[ SWIRLY ]\033[0m\n");
+        for(int i=0; h15[0][i]; i++) printf("\033[1;32m%s\n", h15[0][i]);
+
+        printf("\n\033[1;33m[ THIN LINES ]\033[0m\n");
+        for(int i=0; h10[0][i]; i++) printf("\033[1;33m%s\n", h10[0][i]);
+
+        printf("\n\033[1;31m[ HEIGHT 9 VARIANTS ]\033[0m\n");
+        for(int v=0; v<3; v++) { // Loop through the 3 variants
+            for(int i=0; h9[v][i]; i++) printf("\033[1;31m%s\n", h9[v][i]);
+            printf("\n");
+        }
+
+        printf("\033[1;34m[ SERIF ]\033[0m\n");
+        for(int i=0; h8[0][i]; i++) printf("\033[1;34m%s\n", h8[0][i]);
+
+        printf("\n\033[1;36m[ HEIGHT 6 VARIANTS ]\033[0m\n");
+        for(int v=0; v<2; v++) { // Loop through the 2 variants
+            for(int i=0; h6[v][i]; i++) printf("\033[1;36m%s\n", h6[v][i]);
+            printf("\n");
+        }
+        
+        printf("\033[0m");
+        return;
+    }
+
+    // --- SELECTION LOGIC ---
+    int group_choice = rand() % 3; // 0=Tall, 1=Medium, 2=Small
+    char *color = cyan; 
+    int padding_lines = 0;
+
+    // TALL GROUP (15-20)
+    if (group_choice == 0) {
+        // Pick between 20 or 15
+        int h = (rand() % 2 == 0) ? 20 : 15;
+        
+        if (h == 20) {
+            color = magenta;
+            printf("%s", color);
+            for(int i=0; h21[0][i]; i++) printf("%s\n", h21[0][i]);
+            padding_lines = 0; // Already max height
+        } else {
+            color = green;
+            printf("%s", color);
+            for(int i=0; h15[0][i]; i++) printf("%s\n", h15[0][i]);
+            padding_lines = 6;
+        }
+    }
+
+    // MEDIUM GROUP (9-10)
+    else if (group_choice == 1) {
+        // Pick between 10 or 9
+        int h = (rand() % 2 == 0) ? 10 : 9;
+
+        if (h == 10) {
+            color = yellow;
+            printf("%s", color);
+            for(int i=0; h10[0][i]; i++) printf("%s\n", h10[0][i]);
+            padding_lines = 0;
+        } else {
+            color = red;
+            printf("%s", color);
+            int idx = rand() % 3; // 3 styles of height 9
+            for(int i=0; h9[idx][i]; i++) printf("%s\n", h9[idx][i]);
+            padding_lines = 1;
+        }
+    }
+
+    // SMALL GROUP (6-8)
+    else {
+        // Pick between 8 or 6
+        int h = (rand() % 2 == 0) ? 8 : 6;
+
+        if (h == 8) {
+            color = blue;
+            printf("%s", color);
+            for(int i=0; h8[0][i]; i++) printf("%s\n", h8[0][i]);
+            padding_lines = 0;
+        } else {
+            color = cyan;
+            printf("%s", color);
+            int idx = rand() % 2; // 2 styles of height 6
+            for(int i=0; h6[idx][i]; i++) printf("%s\n", h6[idx][i]);
+            padding_lines = 2; // 8 - 6 = 2 empty lines
+        }
+    }
+
+    printf("%s", reset);
+
+    // --- APPLY PADDING (Space lines at bottom) ---
+    for (int k = 0; k < padding_lines; k++) {
+        printf("\n");
+    }
+
+    // --- ROTATING STATUS TEXT ---
+    const char *messages[] = {
+"[ WAKE UP, USER... ]",
+        "[ THE NET IS VAST AND INFINITE ]",
+        "[ FOLLOW THE WHITE RABBIT ]",
+        "[ SYSTEM SHOCK IMMINENT ]",
+        "[ GHOST DETECTED IN SHELL ]",
+        "[ UPLOADING CONSCIOUSNESS... ]",
+        "[ SECURITY LEVEL: PARANOID ]",
+        "[ INITIALIZING NEURAL LINK... ]",
+        "[ ESTABLISHING SECURE CONNECTION ]",
+        "[ DECRYPTING ROOT ACCESS... ]",
+        "[ BYPASSING MAINFRAME FIREWALL ]",
+        "[ SCANNING PORTS... ]",
+        "[ ALLOCATING MEMORY BLOCKS ]",
+        "[ SYSTEM INTEGRITY: 99% ]",
+        "[ SEARCHING FOR PROXIES... ]",
+        "[ HIDING IP ADDRESS... ]",
+        "[ SPOOFING MAC ADDRESS... ]",
+        "[ INJECTING SQL PAYLOAD... ]",
+        "[ ACCESSING GIBSON MAINFRAME ]",
+        "[ REWRITING SYSTEM HISTORY... ]",
+        "[ GLITCH IN THE MATRIX DETECTED ]",
+        "[ TERMINAL ACCESS GRANTED ]",
+        "[ EXECUTING STARTUP SCRIPT ]",
+        "[ CHECKING BIOS INTEGRITY ]",
+        "[ LOADING KERNEL MODULES... ]",
+        "[ MOUNTING VIRTUAL DRIVES... ]",
+        "[ ENCRYPTING FILE SYSTEM... ]",
+        "[ DAEMON PROCESS STARTED ]",
+        "[ LISTENING ON PORT 1337 ]",
+        "[ PACKET LOSS DETECTED ]",
+        "[ REBOOTING SIMULATION... ]",
+        "[ COMPILING SOURCE CODE... ]",
+        "[ SYNTAX ERROR IN REALITY ]",
+        "[ 404: SOUL NOT FOUND ]",
+        "[ CONNECTION ESTABLISHED ]"
+    };
+
+    int msg_count = sizeof(messages) / sizeof(messages[0]);
+    
+    // Typewriter Effect
+    printf("\n   %s", green); 
+    
+    for (int k = 0; k < 3; k++) {
+        int msg_idx = rand() % msg_count;
+        const char *text = messages[msg_idx];
+
+        // Print characters for the current message
+        for (int i = 0; text[i] != '\0'; i++) {
+            printf("%c", text[i]);
+            fflush(stdout); 
+            usleep(15000); 
+        }
+
+        // If this is not the last message, print a separator (Tab/Spaces)
+        if (k < 2) {
+            printf("\t\t"); // Adds tabs between messages
+            fflush(stdout);
+        }
+    }
+    printf("%s\n\n", reset);
+}
+
+
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history"};
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
         if (args[1] != NULL && strcmp(args[1], "0") == 0) return 1; // Exit signal
         return 1; // Exit signal
+    }
+
+    if (strcmp(args[0], "cshell") == 0) {
+        print_start_screen(1); // Pass 1 to show gallery
+        return 0;
     }
 
     if (strcmp(args[0], "echo") == 0) {
@@ -513,7 +850,7 @@ int execute_command(char **args, int arg_count) {
     if (command_path != NULL) {
         #ifdef _WIN32
             // Windows execution
-            _spawnv(_P_WAIT, command_path, args);
+            _spawnv(_P_WAIT, command_path, (const char * const *)args);
         #else
             // Linux execution
             pid_t pid = fork();
@@ -532,9 +869,25 @@ int execute_command(char **args, int arg_count) {
     return 0;
 }
 
+void enable_ansi_support() {
+    #ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= 0x0004; 
+    SetConsoleMode(hOut, dwMode);
+
+    SetConsoleOutputCP(65001);
+    #endif
+}
+
+
 int main(int argc, char *argv[]) {
+  enable_ansi_support();
   // Flush after every printf
   setbuf(stdout, NULL);
+
+  print_start_screen(0);
 
   #ifndef _WIN32
   rl_attempted_completion_function = builtin_completion;
