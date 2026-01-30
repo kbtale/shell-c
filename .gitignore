@@ -53,3 +53,15 @@ dkms.conf
 
 build
 vcpkg_installed
+
+# The compiled binary
+shell
+
+# IDE/Editor specific
+.vscode/
+.idea/
+.DS_Store
+
+# Local history files created during testing
+.shell_history
+*.history
