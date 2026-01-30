@@ -532,7 +532,7 @@ int main(int argc, char *argv[]) {
 
     if (args[0] == NULL) continue;
 
-    // --- PIPELINE LOGIC (UPDATED FOR MULTIPLE PIPES) ---
+    // --- PIPELINE LOGIC ---
     // Check for pipe '|' symbol
     int has_pipe = 0;
     for (int i = 0; i < arg_count; i++) {
@@ -590,9 +590,14 @@ int main(int argc, char *argv[]) {
                         close(pipefd[0]); // Reader not needed in this child
                     }
 
+                    // Calculate arg count for this command (FIXED)
+                    int sub_arg_count = 0;
+                    while (commands[i][sub_arg_count] != NULL) {
+                        sub_arg_count++;
+                    }
+
                     // Execute the command
-                    // Calculate sub-arg count safely (optional for execute_command but good for debugging)
-                    execute_command(commands[i], 0); // Note: execute_command recalculates arg_count or ignores it
+                    execute_command(commands[i], sub_arg_count);
                     exit(0);
                 }
                 
