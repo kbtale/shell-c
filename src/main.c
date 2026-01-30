@@ -536,11 +536,23 @@ int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
 
-  // --- REGISTER AUTOCOMPLETE (Linux Only) ---
   #ifndef _WIN32
   rl_attempted_completion_function = builtin_completion;
+  char *histfile = getenv("HISTFILE");
+  if (histfile) {
+      FILE *fp = fopen(histfile, "r");
+      if (fp) {
+          char line[1024];
+          while (fgets(line, sizeof(line), fp)) {
+              line[strcspn(line, "\r\n")] = '\0'; // Remove newline
+              if (strlen(line) > 0) {
+                  add_history(line);
+              }
+          }
+          fclose(fp);
+      }
+  }
   #endif
-  // ------------------------------------------
 
   while (1)
   {
@@ -887,5 +899,20 @@ int main(int argc, char *argv[]) {
     }
 
   }
+  // --- SAVE HISTFILE ---
+  #ifndef _WIN32
+  if (histfile) {
+      FILE *fp = fopen(histfile, "w"); // Overwrite file on exit
+      if (fp) {
+          HIST_ENTRY **the_list = history_list();
+          if (the_list) {
+              for (int i = 0; the_list[i]; i++) {
+                  fprintf(fp, "%s\n", the_list[i]->line);
+              }
+          }
+          fclose(fp);
+      }
+  }
+  #endif
   return 0;
 }
