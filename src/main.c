@@ -344,6 +344,27 @@ int execute_command(char **args, int arg_count) {
                     perror("history"); // File not found
                 }
                 return 0;
+            } //Handle history -w <filename>
+            else if (args[1] != NULL && strcmp(args[1], "-w") == 0) {
+                if (args[2] == NULL) {
+                    printf("history: missing filename\n");
+                    return 0;
+                }
+
+                FILE *fp = fopen(args[2], "w"); // "w" mode creates or overwrites
+                if (fp) {
+                    HIST_ENTRY **the_list = history_list();
+                    if (the_list) {
+                        for (int i = 0; the_list[i]; i++) {
+                            // Write the command followed by a newline
+                            fprintf(fp, "%s\n", the_list[i]->line);
+                        }
+                    }
+                    fclose(fp);
+                } else {
+                    perror("history"); // Handle permission/path errors
+                }
+                return 0;
             }
 
             // Listing Logic
