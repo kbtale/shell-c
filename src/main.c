@@ -365,6 +365,41 @@ int execute_command(char **args, int arg_count) {
                     perror("history"); // Handle permission/path errors
                 }
                 return 0;
+            } // Handle history -a <filename>
+            else if (args[1] != NULL && strcmp(args[1], "-a") == 0) {
+                if (args[2] == NULL) {
+                    printf("history: missing filename\n");
+                    return 0;
+                }
+
+                // "a" mode appends to the end of the file
+                FILE *fp = fopen(args[2], "a"); 
+                if (fp) {
+                    HIST_ENTRY **the_list = history_list();
+                    if (the_list) {
+                        // Static variable to remember where we left off last time.
+                        // Initialized to 0 only once when the program starts.
+                        static int history_write_index = 0;
+
+                        // Count total entries currently in memory
+                        int total_entries = 0;
+                        while (the_list[total_entries]) {
+                            total_entries++;
+                        }
+
+                        // Write only the new entries (from write_index to end)
+                        for (int i = history_write_index; i < total_entries; i++) {
+                            fprintf(fp, "%s\n", the_list[i]->line);
+                        }
+
+                        // Update the index so next time we skip these
+                        history_write_index = total_entries;
+                    }
+                    fclose(fp);
+                } else {
+                    perror("history");
+                }
+                return 0;
             }
 
             // Listing Logic
