@@ -248,7 +248,7 @@ void get_input_windows(char *buffer, int size) {
             if (!match) {
                 char *ext_match = get_path_match_windows(buffer);
                 if (ext_match) {
-                    // We found an external match. 
+                    // found an external match. 
                     match = ext_match; 
                     // Don't free ext_match immediately or we lose the pointer text
                 }
@@ -322,7 +322,31 @@ int execute_command(char **args, int arg_count) {
     // --- HISTORY BUILTIN ---
     if (strcmp(args[0], "history") == 0) {
         #ifndef _WIN32
-            // Use readline's history list
+            // Handle history -r <filename>
+            if (args[1] != NULL && strcmp(args[1], "-r") == 0) {
+                if (args[2] == NULL) {
+                    printf("history: missing filename\n");
+                    return 0; 
+                }
+                
+                FILE *fp = fopen(args[2], "r");
+                if (fp) {
+                    char line[1024];
+                    while (fgets(line, sizeof(line), fp)) {
+                        // Remove trailing newline chars
+                        line[strcspn(line, "\r\n")] = '\0';
+                        if (strlen(line) > 0) {
+                            add_history(line);
+                        }
+                    }
+                    fclose(fp);
+                } else {
+                    perror("history"); // File not found
+                }
+                return 0;
+            }
+
+            // Listing Logic
             HIST_ENTRY **the_list = history_list();
             if (the_list) {
                 // Calculate total number of history entries
@@ -331,7 +355,7 @@ int execute_command(char **args, int arg_count) {
                     total_entries++;
                 }
 
-                // Determine start index
+                // Determine start index based on limit arg
                 int start_index = 0;
                 if (args[1] != NULL) {
                     int limit = atoi(args[1]);
@@ -343,7 +367,6 @@ int execute_command(char **args, int arg_count) {
 
                 // Print entries starting from calculated index
                 for (int i = start_index; the_list[i]; i++) {
-                    // Standard format: 4 spaces, index, 2 spaces, command
                     printf("    %d  %s\n", i + 1, the_list[i]->line);
                 }
             }
@@ -623,7 +646,7 @@ int main(int argc, char *argv[]) {
                         close(pipefd[0]); // Reader not needed in this child
                     }
 
-                    // Calculate arg count
+                    // Calculate arg count for this command
                     int sub_arg_count = 0;
                     while (commands[i][sub_arg_count] != NULL) {
                         sub_arg_count++;
