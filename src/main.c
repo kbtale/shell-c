@@ -748,7 +748,6 @@ int main(int argc, char *argv[]) {
             printf("Pipelines not fully supported on Windows in this shell.\n");
         #endif
 
-        // Free memory and skip the rest of the loop
         for (int i = 0; i < arg_count; i++) {
              if (args[i]) free(args[i]);
         }
