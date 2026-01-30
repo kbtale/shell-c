@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 // --- LINUX/MAC: READLINE & DIRENT ---
 #ifndef _WIN32
@@ -633,7 +634,7 @@ void print_start_screen(int show_all) {
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx"};
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx", "hexdump", "bindump"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
@@ -643,6 +644,92 @@ int execute_command(char **args, int arg_count) {
 
     if (strcmp(args[0], "cshell") == 0) {
         print_start_screen(1); // Pass 1 to show gallery
+        return 0;
+    }
+
+    // --- HEXDUMP COMMAND ---
+    else if (strcmp(args[0], "hexdump") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: hexdump <filename>\n");
+            return 0;
+        }
+
+        FILE *fp = fopen(args[1], "rb"); // Open in binary mode
+        if (!fp) {
+            perror("hexdump");
+            return 0;
+        }
+
+        unsigned char buffer[16];
+        size_t bytes_read;
+        size_t offset = 0;
+
+        printf("\033[1;32m"); // Matrix Green
+
+        while ((bytes_read = fread(buffer, 1, 16, fp)) > 0) {
+            // Print Offset
+            printf("%08zX  ", offset);
+
+            // Print Hex Values
+            for (int i = 0; i < 16; i++) {
+                if (i < bytes_read) printf("%02X ", buffer[i]);
+                else printf("   "); // Padding for partial lines
+                if (i == 7) printf(" "); // Extra space for readability
+            }
+
+            printf(" |");
+
+            // Print ASCII representation
+            for (int i = 0; i < bytes_read; i++) {
+                if (isprint(buffer[i])) printf("%c", buffer[i]);
+                else printf("."); // Non-printable characters become dots
+            }
+            printf("|\n");
+            offset += bytes_read;
+        }
+        printf("\033[0m"); // Reset color
+        fclose(fp);
+        return 0;
+    }
+
+    // --- BINDUMP COMMAND ---
+    else if (strcmp(args[0], "bindump") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: bindump <filename>\n");
+            return 0;
+        }
+
+        FILE *fp = fopen(args[1], "rb");
+        if (!fp) {
+            perror("bindump");
+            return 0;
+        }
+
+        unsigned char buffer[8]; // Read 8 bytes at a time (fit on one line)
+        size_t bytes_read;
+        size_t offset = 0;
+
+        printf("\033[1;32m"); // Matrix Green
+
+        while ((bytes_read = fread(buffer, 1, 8, fp)) > 0) {
+            // Print Offset
+            printf("%08zX  ", offset);
+
+            // Print Binary Bits
+            for (int i = 0; i < bytes_read; i++) {
+                unsigned char byte = buffer[i];
+                // Loop through 8 bits (7 down to 0)
+                for (int b = 7; b >= 0; b--) {
+                    printf("%d", (byte >> b) & 1);
+                }
+                printf(" "); // Space between bytes
+            }
+
+            printf("\n");
+            offset += bytes_read;
+        }
+        printf("\033[0m"); // Reset color
+        fclose(fp);
         return 0;
     }
 
