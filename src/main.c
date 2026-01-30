@@ -532,64 +532,88 @@ int main(int argc, char *argv[]) {
 
     if (args[0] == NULL) continue;
 
-    // --- PIPELINE LOGIC ---
+    // --- PIPELINE LOGIC (UPDATED FOR MULTIPLE PIPES) ---
     // Check for pipe '|' symbol
-    int pipe_index = -1;
+    int has_pipe = 0;
     for (int i = 0; i < arg_count; i++) {
         if (strcmp(args[i], "|") == 0) {
-            pipe_index = i;
+            has_pipe = 1;
             break;
         }
     }
 
-    if (pipe_index != -1) {
+    if (has_pipe) {
         #ifndef _WIN32
-            // Split arguments
-            args[pipe_index] = NULL;
-            char **left_args = args;
-            char **right_args = &args[pipe_index + 1];
+            // Separate commands by splitting args at "|"
+            char **commands[16]; // Max 16 stages for now
+            int num_cmds = 0;
+            
+            commands[num_cmds++] = args; // First command starts at beginning
 
-            // Create Pipe
-            int pipefd[2]; // pipefd[0] = read end, pipefd[1] = write end
-            if (pipe(pipefd) == -1) {
-                perror("pipe");
-                // Cleanup logic
-                for (int i = 0; i < arg_count; i++) if(args[i]) free(args[i]);
-                continue;
+            for (int i = 0; i < arg_count; i++) {
+                if (strcmp(args[i], "|") == 0) {
+                    args[i] = NULL; // Terminate previous command arguments
+                    commands[num_cmds++] = &args[i + 1]; // Next command starts after "|"
+                }
             }
 
-            // Fork First Child (Left Command)
-            pid_t pid1 = fork();
-            if (pid1 == 0) {
-                // Child 1: Redirect STDOUT to Pipe Write End
-                dup2(pipefd[1], STDOUT_FILENO);
-                close(pipefd[0]);
-                close(pipefd[1]);
+            // Loop through all commands
+            int prev_pipe_read = -1; // Read end of the previous pipe
+            int pipefd[2];
+            pid_t pids[16];
 
-                // Reuse existing executor (recursively checks path, etc)
-                // Note: arg_count passed here is strictly for the left side
-                execute_command(left_args, pipe_index);
-                exit(0);
+            for (int i = 0; i < num_cmds; i++) {
+                // Create pipe for all commands EXCEPT the last one
+                if (i < num_cmds - 1) {
+                    if (pipe(pipefd) == -1) {
+                        perror("pipe");
+                        break;
+                    }
+                }
+
+                // Fork for every command
+                pids[i] = fork();
+
+                if (pids[i] == 0) {
+                    // --- CHILD PROCESS ---
+                    
+                    // If there is a previous pipe, read from it (STDIN)
+                    if (prev_pipe_read != -1) {
+                        dup2(prev_pipe_read, STDIN_FILENO);
+                        close(prev_pipe_read);
+                    }
+
+                    // If not the last command, write to the current pipe (STDOUT)
+                    if (i < num_cmds - 1) {
+                        dup2(pipefd[1], STDOUT_FILENO);
+                        close(pipefd[1]);
+                        close(pipefd[0]); // Reader not needed in this child
+                    }
+
+                    // Execute the command
+                    // Calculate sub-arg count safely (optional for execute_command but good for debugging)
+                    execute_command(commands[i], 0); // Note: execute_command recalculates arg_count or ignores it
+                    exit(0);
+                }
+                
+                // --- PARENT PROCESS ---
+                
+                // Close the read end of the previous pipe (we are done with it)
+                if (prev_pipe_read != -1) {
+                    close(prev_pipe_read);
+                }
+
+                // If not the last command, setup prev_pipe_read for the NEXT iteration
+                if (i < num_cmds - 1) {
+                    prev_pipe_read = pipefd[0]; // Save read end for next child
+                    close(pipefd[1]);           // Close write end (parent doesn't write)
+                }
             }
 
-            // Fork Second Child (Right Command)
-            pid_t pid2 = fork();
-            if (pid2 == 0) {
-                // Child 2: Redirect STDIN from Pipe Read End
-                dup2(pipefd[0], STDIN_FILENO);
-                close(pipefd[1]);
-                close(pipefd[0]);
-
-                // Execute right side
-                execute_command(right_args, arg_count - pipe_index - 1);
-                exit(0);
+            // Wait for all children to finish
+            for (int i = 0; i < num_cmds; i++) {
+                waitpid(pids[i], NULL, 0);
             }
-
-            // Parent Cleanup
-            close(pipefd[0]);
-            close(pipefd[1]);
-            waitpid(pid1, NULL, 0);
-            waitpid(pid2, NULL, 0);
 
         #else
             printf("Pipelines not fully supported on Windows in this shell.\n");
