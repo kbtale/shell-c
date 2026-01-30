@@ -633,7 +633,7 @@ void print_start_screen(int show_all) {
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell"};
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
@@ -653,6 +653,49 @@ int execute_command(char **args, int arg_count) {
             if (i < arg_count - 1) printf(" ");
         }
         printf("\n");
+        return 0;
+    }
+
+    // --- MX LOOKUP ---
+    if (strcmp(args[0], "mx") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: mx <domain>\n");
+            return 0;
+        }
+
+        char cmd[256];
+        // Construct the command string safely
+        // Windows/Linux both support "nslookup -type=mx"
+        snprintf(cmd, sizeof(cmd), "nslookup -type=mx %s", args[1]);
+
+        FILE *fp = popen(cmd, "r"); // Execute command and read output
+        if (fp == NULL) {
+            perror("Failed to run nslookup");
+            return 0;
+        }
+
+        char line[512];
+        int found_records = 0;
+        
+        printf("\n\033[1;36m[ SCANNING MAIL SERVERS FOR: %s ]\033[0m\n", args[1]);
+        
+        // Read the output line by line
+        while (fgets(line, sizeof(line), fp) != NULL) {
+            // We simple look for lines containing "mail exchanger"
+            if (strstr(line, "mail exchanger")) {
+                // Strip newlines
+                line[strcspn(line, "\r\n")] = 0;
+                printf("  %s\033[1;32m%s\033[0m\n", "-> ", line);
+                found_records++;
+            }
+        }
+
+        if (found_records == 0) {
+            printf("  [!] No MX records found or connection failed.\n");
+        }
+        printf("\n");
+
+        pclose(fp);
         return 0;
     }
 
