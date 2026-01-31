@@ -9,6 +9,7 @@
   #include <readline/readline.h>
   #include <readline/history.h>
   #include <dirent.h>
+  #include <sys/types.h>
 #endif
 
 // --- WINDOWS: CONIO ---
@@ -54,6 +55,30 @@
     #define strdup _strdup
     #define getcwd _getcwd
     #define chdir _chdir
+
+    // --- HISTORY STORAGE FOR WINDOWS ---
+    #define MAX_HISTORY 100
+    #define MAX_CMD_LEN 1024
+    
+    char history_storage[MAX_HISTORY][MAX_CMD_LEN];
+    int history_count = 0;
+
+    void add_to_history_windows(const char *cmd) {
+        if (strlen(cmd) == 0) return;
+        
+        // Don't add if it matches the previous command
+        if (history_count > 0 && strcmp(history_storage[history_count-1], cmd) == 0) return;
+
+        if (history_count < MAX_HISTORY) {
+            strcpy(history_storage[history_count++], cmd);
+        } else {
+            // Shift everything up if full
+            for (int i = 1; i < MAX_HISTORY; i++) {
+                strcpy(history_storage[i-1], history_storage[i]);
+            }
+            strcpy(history_storage[MAX_HISTORY-1], cmd);
+        }
+    }
 #else
     // Linux/Mac-specific headers
     #include <unistd.h>   // For fork, execv, access
@@ -230,61 +255,63 @@ char *get_path_match_windows(const char *prefix) {
 
 void get_input_windows(char *buffer, int size) {
     int pos = 0;
+    int view_index = history_count; // Start at the "new" empty line
     char c;
-    char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history"};
-    int num_builtins = 6;
-
-    printf("$ "); // Print prompt manually
+    
+    // Clear buffer initially
+    buffer[0] = '\0';
+    printf("$ ");
 
     while (1) {
-        c = _getch(); // Read raw keypress without echoing
+        c = _getch(); // Read key
 
-        // Handle Tab (Autocompletion)
-        if (c == '\t') {
-            buffer[pos] = '\0'; // Temporarily null terminate
-            int found = 0;
-            char *match = NULL;
+        // --- ARROW KEYS (Special 2-byte codes: 224 or 0, then the code) ---
+        if (c == -32 || c == 224) { 
+            c = _getch(); // Get the actual code
 
-            // 1. Check Builtins
-            for(int i=0; i<num_builtins; i++) {
-                if(strncmp(builtins[i], buffer, pos) == 0) {
-                    match = builtins[i];
-                    break;
-                }
-            }
-
-            // Check PATH (if no builtin found)
-            if (!match) {
-                char *ext_match = get_path_match_windows(buffer);
-                if (ext_match) {
-                    // found an external match. 
-                    match = ext_match; 
-                    // Don't free ext_match immediately or we lose the pointer text
-                }
-            }
-
-            // Apply Completion
-            if (match) {
-                // Print the rest of the word
-                int match_len = strlen(match);
-                if (match_len > pos) {
-                    printf("%s ", match + pos); // Print remaining chars + space
+            // UP ARROW (72)
+            if (c == 72) { 
+                if (view_index > 0) {
+                    view_index--;
                     
-                    // Update buffer
-                    strcpy(buffer, match);
-                    pos = match_len;
-                    buffer[pos++] = ' '; // Add trailing space
+                    // Clear current line on screen
+                    while (pos > 0) { printf("\b \b"); pos--; }
+                    
+                    // Copy history to buffer
+                    strcpy(buffer, history_storage[view_index]);
+                    pos = strlen(buffer);
+                    printf("%s", buffer);
                 }
-                // If allocated external match, free it?
-                // (Complex to handle cleanly in this loop structure without leaks)
+            }
+            // DOWN ARROW (80)
+            else if (c == 80) {
+                if (view_index < history_count) {
+                    view_index++;
+                    
+                    // Clear current line
+                    while (pos > 0) { printf("\b \b"); pos--; }
+
+                    if (view_index == history_count) {
+                        // We are back at the empty new line
+                        buffer[0] = '\0';
+                    } else {
+                        // Load next history item
+                        strcpy(buffer, history_storage[view_index]);
+                    }
+                    pos = strlen(buffer);
+                    printf("%s", buffer);
+                }
             }
             continue;
         }
+        // ------------------------------------------------------------------
 
         // Handle Enter
         if (c == '\r' || c == '\n') {
             printf("\n");
             buffer[pos] = '\0';
+            // Save to history immediately
+            add_to_history_windows(buffer); 
             break;
         }
 
@@ -292,15 +319,15 @@ void get_input_windows(char *buffer, int size) {
         if (c == 8) { 
             if (pos > 0) {
                 pos--;
-                printf("\b \b"); // Move back, overwrite space, move back
+                printf("\b \b"); 
             }
             continue;
         }
 
-        // Handle Normal Character
+        // Handle Normal Char
         if (pos < size - 1 && c >= 32 && c <= 126) {
             buffer[pos++] = c;
-            printf("%c", c); // Echo the character
+            printf("%c", c);
         }
     }
 }
@@ -634,7 +661,7 @@ void print_start_screen(int show_all) {
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx", "hexdump", "bindump", "weather"};
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx", "hexdump", "bindump", "weather", "help", "ls", "clear", "cls"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
@@ -644,6 +671,92 @@ int execute_command(char **args, int arg_count) {
 
     if (strcmp(args[0], "cshell") == 0) {
         print_start_screen(1); // Pass 1 to show gallery
+        return 0;
+    }
+
+    // --- CLEAR / CLS COMMAND ---
+    else if (strcmp(args[0], "clear") == 0 || strcmp(args[0], "cls") == 0) {
+        printf("\033[H\033[J"); // ANSI Escape to clear screen
+        return 0;
+    }
+
+    // --- HELP COMMAND ---
+    else if (strcmp(args[0], "help") == 0) {
+        printf("\n\033[1;33m--- CSHELL MANUAL ---\033[0m\n");
+        printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
+        printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
+        printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
+        printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
+        printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
+        printf("  \033[1;32mmx <dom>\033[0m   : Find Mail Servers for domain\n");
+        printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
+        printf("  \033[1;32mhexdump\033[0m    : View file in Hex\n");
+        printf("  \033[1;32mbindump\033[0m    : View file in Binary\n");
+        printf("  \033[1;32mtodo\033[0m       : Manage tasks (add/list/clear)\n");
+        printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
+        printf("  \033[1;32mexit\033[0m       : Close shell\n\n");
+        return 0;
+    }
+
+    // --- LS COMMAND ---
+    else if (strcmp(args[0], "ls") == 0) {
+        int show_hidden = 0;
+        if (args[1] != NULL && strcmp(args[1], "-a") == 0) {
+            show_hidden = 1;
+        }
+
+        #ifdef _WIN32
+        // --- WINDOWS ---
+        WIN32_FIND_DATA findFileData;
+        HANDLE hFind = FindFirstFile("*", &findFileData);
+
+        if (hFind == INVALID_HANDLE_VALUE) {
+            printf("ls: Cannot access directory\n");
+            return 0;
+        }
+
+        do {
+            int is_hidden_dot = (findFileData.cFileName[0] == '.');
+            if (!show_hidden && is_hidden_dot) continue;
+
+            if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                printf("\033[1;34m%s\033[0m  ", findFileData.cFileName); // Blue for Dir
+            } else {
+                printf("%s  ", findFileData.cFileName);
+            }
+        } while (FindNextFile(hFind, &findFileData) != 0);
+        FindClose(hFind);
+
+        #else
+        // --- LINUX/MAC ---
+        DIR *d;
+        struct dirent *dir;
+        struct stat file_stat;
+
+        d = opendir(".");
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                if (!show_hidden && dir->d_name[0] == '.') continue;
+
+                if (stat(dir->d_name, &file_stat) == 0) {
+                    if (S_ISDIR(file_stat.st_mode)) {
+                        printf("\033[1;34m%s\033[0m  ", dir->d_name); // Blue
+                    } else if (file_stat.st_mode & S_IXUSR) {
+                        printf("\033[1;32m%s\033[0m  ", dir->d_name); // Green (Exec)
+                    } else {
+                        printf("%s  ", dir->d_name);
+                    }
+                } else {
+                    printf("%s  ", dir->d_name); // Fallback
+                }
+            }
+            closedir(d);
+        } else {
+            perror("ls");
+        }
+        #endif
+
+        printf("\n");
         return 0;
     }
 
