@@ -11,6 +11,8 @@ REPLs, builtin commands, and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
+https://github.com/user-attachments/assets/5c94e22a-642a-4c0e-bade-804216c247e6
+
 # Features
 
 - Cross-platform support (Linux/macOS via `fork`/`exec`, Windows via `_spawnv`).
