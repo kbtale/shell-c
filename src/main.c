@@ -683,23 +683,23 @@ int execute_command(char **args, int arg_count) {
     // --- HELP COMMAND ---
     else if (strcmp(args[0], "help") == 0) {
         printf("\n\033[1;33m--- CSHELL MANUAL ---\033[0m\n");
-        printf("  \033[1;32mhelp\033[0m       : Show this help\n");
-        printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
-        printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
-        printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
-        printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
-        printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
-        printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
-        printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");
-        printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
-        printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
-        printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
         printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
-        printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
-        printf("  \033[1;32mwhoami\033[0m     : Show current user\n");
-        printf("  \033[1;32mip\033[0m         : Show network info\n");
+        printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
+        printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
         printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
-        printf("  \033[1;32mexit\033[0m       : Close shell\n\n");
+        printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
+        printf("  \033[1;32mexit\033[0m       : Close shell\n");
+        printf("  \033[1;32mhelp\033[0m       : Show this help\n");
+        printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
+        printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");
+        printf("  \033[1;32mip\033[0m         : Show network info\n");
+        printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
+        printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
+        printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
+        printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
+        printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
+        printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
+        printf("  \033[1;32mwhoami\033[0m     : Show current user\n\n");
         return 0;
     }
 
@@ -721,6 +721,78 @@ int execute_command(char **args, int arg_count) {
         }
 
         system(cmd);
+        return 0;
+    }
+
+    // --- READ COMMAND ---
+    else if (strcmp(args[0], "read") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: read <url>\n");
+            return 0;
+        }
+
+        char cmd[1024];
+        
+        // I use the r.jina.ai proxy to strip HTML and get clean text
+        // -s = Silent
+        // -L = Follow redirects
+        snprintf(cmd, sizeof(cmd), "curl -s -L \"https://r.jina.ai/%s\"", args[1]);
+
+        printf("\n\033[1;36m[ DECODING STREAM FROM: %s ]\033[0m\n\n", args[1]);
+
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            perror("Connection lost");
+            return 0;
+        }
+
+        char line[1024];
+        while (fgets(line, sizeof(line), fp)) {
+            // Print only if line is not empty (skips some whitespace)
+            if (strlen(line) > 1) {
+                printf("  %s", line);
+            }
+        }
+        printf("\n\n");
+        pclose(fp);
+        return 0;
+    }
+
+    // --- TOUCH COMMAND (Create Empty File) ---
+    else if (strcmp(args[0], "touch") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: touch <filename>\n");
+            return 0;
+        }
+        
+        // Open in "append" mode (a). 
+        // If file exists, it does nothing (just updates time).
+        // If it doesn't exist, it creates it.
+        FILE *fp = fopen(args[1], "a");
+        if (fp) {
+            fclose(fp);
+            printf("File '%s' touched.\n", args[1]);
+        } else {
+            perror("touch");
+        }
+        return 0;
+    }
+
+    // --- BANNER COMMAND (Text to ASCII) ---
+    else if (strcmp(args[0], "banner") == 0) {
+        if (args[1] == NULL) {
+            printf("Usage: banner <text>\n");
+            return 0;
+        }
+
+        char cmd[256];
+        // Uses artii.herokuapp.com API
+        snprintf(cmd, sizeof(cmd), "curl -s \"http://artii.herokuapp.com/make?text=%s&font=slant\"", args[1]);
+
+        printf("\n\033[1;35m"); // Magenta color
+        fflush(stdout); 
+        system(cmd);
+        printf("\033[0m\n");
         return 0;
     }
 
