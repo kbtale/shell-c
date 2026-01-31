@@ -634,7 +634,7 @@ void print_start_screen(int show_all) {
 // --- EXECUTOR FUNCTION ---
 // Handles the logic for all commands. Returns 1 if shell should exit, 0 otherwise.
 int execute_command(char **args, int arg_count) {
-    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx", "hexdump", "bindump"};
+    const char *builtins[] = {"echo", "exit", "type", "pwd", "cd", "history", "cshell", "mx", "hexdump", "bindump", "weather"};
     size_t num_builtins = sizeof(builtins) / sizeof(builtins[0]);
 
     if (strcmp(args[0], "exit") == 0) {
@@ -644,6 +644,48 @@ int execute_command(char **args, int arg_count) {
 
     if (strcmp(args[0], "cshell") == 0) {
         print_start_screen(1); // Pass 1 to show gallery
+        return 0;
+    }
+
+    // --- WEATHER COMMAND ---
+    else if (strcmp(args[0], "weather") == 0) {
+        char cmd[256];
+        
+        // Construct: 
+        // -s = silent (no progress bar)
+        // ?0 = simple format
+        // 2>&1 = redirect stderr to stdout so we catch errors too
+        if (args[1] == NULL) {
+            snprintf(cmd, sizeof(cmd), "curl -s \"wttr.in?0\" 2>&1");
+        } else {
+            snprintf(cmd, sizeof(cmd), "curl -s \"wttr.in/%s?0\" 2>&1", args[1]);
+        }
+
+        printf("\n\033[1;36m[ ACCESSING METEOROLOGICAL SATELLITE... ]\033[0m\n");
+
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            perror("Weather system failure");
+            return 0;
+        }
+
+        char buffer[2048]; // Big buffer for the whole report
+        size_t bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fp);
+        buffer[bytes_read] = '\0'; // Null-terminate
+        pclose(fp);
+
+        // Check validation: 
+        // Valid reports usually start with "Weather report:" or contains the location name.
+        // Failed auto-detect often returns the help text which contains "Usage:" or "Follow"
+        if (bytes_read == 0 || strstr(buffer, "Usage:") || strstr(buffer, "Follow @igor_chubin")) {
+            printf("\n\033[1;31m[!] ERROR: LOCATION AUTO-DETECT FAILED.\033[0m\n");
+            printf("    The satellite could not triangulate your IP address.\n");
+            printf("    \033[1;33mUsage: weather <city>\033[0m\n\n");
+        } else {
+            // Print the buffer
+            printf("\n%s\n", buffer);
+        }
+        
         return 0;
     }
 
@@ -705,7 +747,7 @@ int execute_command(char **args, int arg_count) {
             return 0;
         }
 
-        unsigned char buffer[8]; // Read 8 bytes at a time (fit on one line)
+        unsigned char buffer[8]; // 8 bytes fits nicely on a standard terminal width
         size_t bytes_read;
         size_t offset = 0;
 
@@ -715,17 +757,29 @@ int execute_command(char **args, int arg_count) {
             // Print Offset
             printf("%08zX  ", offset);
 
-            // Print Binary Bits
-            for (int i = 0; i < bytes_read; i++) {
-                unsigned char byte = buffer[i];
-                // Loop through 8 bits (7 down to 0)
-                for (int b = 7; b >= 0; b--) {
-                    printf("%d", (byte >> b) & 1);
+            // Print Binary Blocks
+            for (int i = 0; i < 8; i++) {
+                if (i < bytes_read) {
+                    unsigned char byte = buffer[i];
+                    for (int b = 7; b >= 0; b--) {
+                        printf("%d", (byte >> b) & 1);
+                    }
+                    printf(" "); // Space between bytes
+                } else {
+                    // Padding for partial lines (8 bits + 1 space = 9 chars)
+                    printf("         "); 
                 }
-                printf(" "); // Space between bytes
             }
 
-            printf("\n");
+            printf(" |");
+
+            // Print ASCII Representation
+            for (int i = 0; i < bytes_read; i++) {
+                if (isprint(buffer[i])) printf("%c", buffer[i]);
+                else printf("."); // Non-printable chars become dots
+            }
+            printf("|\n");
+
             offset += bytes_read;
         }
         printf("\033[0m"); // Reset color
