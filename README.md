@@ -15,8 +15,8 @@ REPLs, builtin commands, and more.
 
 - Cross-platform support (Linux/macOS via `fork`/`exec`, Windows via `_spawnv`).
 - Interactive REPL with a `$ ` prompt.
-- Builtins: `echo`, `exit`, `type`, `pwd`, `cd`, `history`, `cshell`.
-- External command execution via `PATH` lookup, with a fallback to current directory.
+- Built-in commands and utilities (see list below).
+- External command execution via `PATH` lookup, with a fallback to the current directory.
 - Command parsing with:
    - Single and double quotes.
    - Backslash escaping (context-aware inside/outside quotes).
@@ -35,6 +35,28 @@ REPLs, builtin commands, and more.
    - Windows: Custom TAB completion for builtins and `PATH` executables.
 - ANSI color support for Windows terminals.
 - Startup splash screen with randomized ASCII art and rotating status messages.
+
+# Commands
+
+Alphabetical list of supported commands:
+
+- `bindump` — View a file in binary.
+- `cd <dir>` — Change directory.
+- `clear` / `cls` — Clear the terminal.
+- `cshell` — Show the theme gallery.
+- `echo <txt>` — Print text.
+- `exit` — Close the shell.
+- `help` — Show built-in help.
+- `hexdump` — View a file in hex.
+- `history` — Show or manage history (`-r`, `-w`, `-a`, or a numeric limit).
+- `ip` — Show network info.
+- `ls [-a]` — List files (use `-a` for hidden).
+- `mx <domain>` — Find mail servers for a domain.
+- `ping [host]` — Ping a host (defaults to 8.8.8.8).
+- `pwd` — Print working directory.
+- `type <cmd>` — Identify builtin or executable path.
+- `weather` — Get live weather report.
+- `whoami` — Show current user.
 
 # Challenge status
 
