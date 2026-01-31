@@ -683,18 +683,70 @@ int execute_command(char **args, int arg_count) {
     // --- HELP COMMAND ---
     else if (strcmp(args[0], "help") == 0) {
         printf("\n\033[1;33m--- CSHELL MANUAL ---\033[0m\n");
+        printf("  \033[1;32mhelp\033[0m       : Show this help\n");
         printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
         printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
         printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
         printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
         printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
-        printf("  \033[1;32mmx <dom>\033[0m   : Find Mail Servers for domain\n");
+        printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
+        printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");
+        printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
         printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
-        printf("  \033[1;32mhexdump\033[0m    : View file in Hex\n");
-        printf("  \033[1;32mbindump\033[0m    : View file in Binary\n");
-        printf("  \033[1;32mtodo\033[0m       : Manage tasks (add/list/clear)\n");
+        printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
+        printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
+        printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
+        printf("  \033[1;32mwhoami\033[0m     : Show current user\n");
+        printf("  \033[1;32mip\033[0m         : Show network info\n");
         printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
         printf("  \033[1;32mexit\033[0m       : Close shell\n\n");
+        return 0;
+    }
+
+    // --- PING COMMAND ---
+    else if (strcmp(args[0], "ping") == 0) {
+        char cmd[256];
+
+        if (args[1] == NULL) {
+            // No args? Ping Google DNS 10 times
+            printf("\n\033[1;36m[ PINGING MAINFRAME (8.8.8.8) ]\033[0m\n");
+            #ifdef _WIN32
+                snprintf(cmd, sizeof(cmd), "ping -n 10 8.8.8.8");
+            #else
+                snprintf(cmd, sizeof(cmd), "ping -c 10 8.8.8.8");
+            #endif
+        } else {
+            // Arg provided? Ping that target normally
+            snprintf(cmd, sizeof(cmd), "ping %s", args[1]);
+        }
+
+        system(cmd);
+        return 0;
+    }
+
+    // --- WHOAMI COMMAND ---
+    else if (strcmp(args[0], "whoami") == 0) {
+        char *user = getenv("USERNAME"); // Windows
+        if (user == NULL) {
+            user = getenv("USER"); // Linux
+        }
+        if (user == NULL) user = "ghost"; // Fallback
+
+        printf("\n  \033[1;32mCurrent Operator:\033[0m %s\n\n", user);
+        return 0;
+    }
+
+    // --- IP COMMAND ---
+    else if (strcmp(args[0], "ip") == 0) {
+        printf("\n\033[1;33m[ NETWORK INTERFACES ]\033[0m\n");
+        #ifdef _WIN32
+            // Windows: Filter ipconfig to only show IPv4 addresses
+            system("ipconfig | findstr \"IPv4\"");
+        #else
+            // Linux: Simple hostname check
+            system("hostname -I");
+        #endif
+        printf("\n");
         return 0;
     }
 
