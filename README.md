@@ -11,6 +11,8 @@ REPLs, builtin commands, and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
+https://github.com/user-attachments/assets/5c94e22a-642a-4c0e-bade-804216c247e6
+
 # Features
 
 - Cross-platform support (Linux/macOS via `fork`/`exec`, Windows via `_spawnv`).
@@ -40,23 +42,23 @@ REPLs, builtin commands, and more.
 
 Alphabetical list of supported commands:
 
-- `bindump` — View a file in binary.
-- `cd <dir>` — Change directory.
-- `clear` / `cls` — Clear the terminal.
-- `cshell` — Show the theme gallery.
-- `echo <txt>` — Print text.
-- `exit` — Close the shell.
-- `help` — Show built-in help.
-- `hexdump` — View a file in hex.
-- `history` — Show or manage history (`-r`, `-w`, `-a`, or a numeric limit).
-- `ip` — Show network info.
-- `ls [-a]` — List files (use `-a` for hidden).
-- `mx <domain>` — Find mail servers for a domain.
-- `ping [host]` — Ping a host (defaults to 8.8.8.8).
-- `pwd` — Print working directory.
-- `type <cmd>` — Identify builtin or executable path.
-- `weather` — Get live weather report.
-- `whoami` — Show current user.
+- `bindump`: View a file in binary.
+- `cd <dir>`: Change directory.
+- `clear` / `cls`: Clear the terminal.
+- `cshell`: Show the theme gallery.
+- `echo <txt>`: Print text.
+- `exit`: Close the shell.
+- `help`: Show built-in help.
+- `hexdump`: View a file in hex.
+- `history`: Show or manage history (`-r`, `-w`, `-a`, or a numeric limit).
+- `ip`: Show network info.
+- `ls [-a]`: List files (use `-a` for hidden).
+- `mx <domain>`: Find mail servers for a domain.
+- `ping [host]`: Ping a host (defaults to 8.8.8.8).
+- `pwd`: Print working directory.
+- `type <cmd>`: Identify builtin or executable path.
+- `weather`: Get live weather report.
+- `whoami`: Show current user.
 
 # Challenge status
 
