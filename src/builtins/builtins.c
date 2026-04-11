@@ -1,7 +1,6 @@
 #include "shell/builtins.h"
 #include <string.h>
 
-// Function pointers or internal declarations for builtins
 extern int builtin_echo(char **args, int arg_count);
 extern int builtin_pwd();
 extern int builtin_cd(char **args);

@@ -1,8 +1,5 @@
 #include "shell/ui.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 const char *COLOR_CYAN = "\033[1;36m";
 const char *COLOR_GREEN = "\033[1;32m";

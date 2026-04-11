@@ -106,7 +106,12 @@ void handle_redirection_and_piping(char **args, int arg_count) {
 
     if (stdout_file != NULL) {
         stdout_backup = dup(STDOUT_FILENO); 
-        int flags = O_WRONLY | O_CREAT | (stdout_append ? O_APPEND : O_TRUNC);
+        int flags = O_WRONLY | O_CREAT;
+        if (stdout_append) {
+            flags |= O_APPEND;
+        } else {
+            flags |= O_TRUNC;
+        }
         int fd = open(stdout_file, flags, 0644);
         if (fd < 0) { perror("open stdout"); return; }
         dup2(fd, STDOUT_FILENO);
@@ -114,7 +119,12 @@ void handle_redirection_and_piping(char **args, int arg_count) {
     }
     if (stderr_file != NULL) {
         stderr_backup = dup(STDERR_FILENO); 
-        int flags = O_WRONLY | O_CREAT | (stderr_append ? O_APPEND : O_TRUNC);
+        int flags = O_WRONLY | O_CREAT;
+        if (stderr_append) {
+            flags |= O_APPEND;
+        } else {
+            flags |= O_TRUNC;
+        }
         int fd = open(stderr_file, flags, 0644);
         if (fd < 0) {
             perror("open stderr");

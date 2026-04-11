@@ -23,7 +23,7 @@ int builtin_cshell() {
     return 0;
 }
 
-void builtin_help() {
+int builtin_help() {
     printf("\n\033[1;33m--- CSHELL MANUAL ---\033[0m\n");
     printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
     printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
@@ -42,6 +42,7 @@ void builtin_help() {
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
     printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
     printf("  \033[1;32mwhoami\033[0m     : Show current user\n\n");
+    return 0;
 }
 
 int builtin_whoami() {
