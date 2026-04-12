@@ -97,3 +97,75 @@ int builtin_addrinfo(char **args, int arg_count) {
     printf("\n");
     return 0;
 }
+
+int builtin_balance(char **args, int arg_count) {
+    if (arg_count < 3) {
+        printf("Usage: balance <address> <chain> (e.g., balance 0x... eth)\n");
+        return 1;
+    }
+
+    const char* addr = args[1];
+    const char* chain = args[2];
+    char url[512] = {0};
+
+    printf("\n\033[1;33mWallet Balance\033[0m\n");
+
+    if (strcmp(chain, "eth") == 0 || strcmp(chain, "ethereum") == 0) {
+        snprintf(url, sizeof(url), "https://api.blockcypher.com/v1/eth/main/addrs/%s/balance", addr);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* bal_ptr = strstr(json, "\"balance\":");
+            if (bal_ptr) {
+                long long wei = 0;
+                sscanf(bal_ptr + 10, "%lld", &wei);
+                printf("  Network: Ethereum\n");
+                printf("  Balance: \033[1;32m%.6f ETH\033[0m\n", (double)wei / 1e18);
+            } else {
+                printf("  Error: Could not parse Ethereum balance.\n");
+            }
+            free(json);
+        } else {
+            printf("  Error: API request failed.\n");
+        }
+    } else if (strcmp(chain, "btc") == 0 || strcmp(chain, "bitcoin") == 0) {
+        snprintf(url, sizeof(url), "https://blockchain.info/q/addressbalance/%s", addr);
+        char* resp = fetch_url_content(url);
+        if (resp) {
+            long long sats = atoll(resp);
+            printf("  Network: Bitcoin\n");
+            printf("  Balance: \033[1;32m%.8f BTC\033[0m\n", (double)sats / 1e8);
+            free(resp);
+        } else {
+            printf("  Error: API request failed.\n");
+        }
+    } else if (strcmp(chain, "ltc") == 0 || strcmp(chain, "litecoin") == 0 ||
+               strcmp(chain, "doge") == 0 || strcmp(chain, "dogecoin") == 0 ||
+               strcmp(chain, "dash") == 0) {
+        
+        const char* slug = strcmp(chain, "ltc") == 0 || strcmp(chain, "litecoin") == 0 ? "ltc" :
+                          (strcmp(chain, "doge") == 0 || strcmp(chain, "dogecoin") == 0 ? "doge" : "dash");
+        const char* name = strcmp(slug, "ltc") == 0 ? "Litecoin" : (strcmp(slug, "doge") == 0 ? "Dogecoin" : "Dash");
+
+        snprintf(url, sizeof(url), "https://api.blockcypher.com/v1/%s/main/addrs/%s/balance", slug, addr);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* bal_ptr = strstr(json, "\"balance\":");
+            if (bal_ptr) {
+                long long units = 0;
+                sscanf(bal_ptr + 10, "%lld", &units);
+                printf("  Network: %s\n", name);
+                printf("  Balance: \033[1;32m%.8f %s\033[0m\n", (double)units / 1e8, slug);
+            } else {
+                printf("  Error: Could not parse %s balance.\n", name);
+            }
+            free(json);
+        } else {
+            printf("  Error: API request failed.\n");
+        }
+    } else {
+        printf("  Error: Unsupported chain '%s'. Use 'eth', 'btc', 'ltc', 'doge', or 'dash'.\n", chain);
+    }
+
+    printf("\n");
+    return 0;
+}
