@@ -169,3 +169,47 @@ int builtin_balance(char **args, int arg_count) {
     printf("\n");
     return 0;
 }
+
+int builtin_whale() {
+    char url[] = "https://api.ethplorer.io/getTopTransfers?apiKey=freekey";
+    char* json = fetch_url_content(url);
+    
+    if (!json) {
+        printf("Error: Could not fetch whale data.\n");
+        return 1;
+    }
+
+    printf("\n\033[1;33mRecent Whale Activity (Ethereum)\033[0m\n");
+    
+    char* pos = json;
+    int count = 0;
+    while (count < 5) {
+        pos = strstr(pos, "{\"id\":");
+        if (!pos) break;
+
+        char* amount_ptr = strstr(pos, "\"amount\":");
+        char* symbol_ptr = strstr(pos, "\"symbol\":");
+        char* value_ptr = strstr(pos, "\"usdValue\":");
+
+        if (amount_ptr && symbol_ptr && value_ptr) {
+            double amount = 0, value = 0;
+            char symbol[16] = {0};
+
+            sscanf(amount_ptr + 9, "%lf", &amount);
+            sscanf(symbol_ptr + 10, "\"%[^\"]\"", symbol);
+            sscanf(value_ptr + 11, "%lf", &value);
+
+            if (value > 500000) { 
+                printf("  🐋 \033[1;32m%.2f %s\033[0m (~$%.2fM USD)\n", amount, symbol, value / 1e6);
+                count++;
+            }
+        }
+        pos += 5;
+    }
+
+    if (count == 0) printf("  No massive movements detected.\n");
+    printf("\n");
+
+    free(json);
+    return 0;
+}
