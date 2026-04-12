@@ -20,7 +20,7 @@ int builtin_trending(char **args, int arg_count) {
         return 1;
     }
 
-    printf("\n\033[1;33m--- TOP %d TRENDING COINS ---\033[0m\n", limit);
+    printf("\n\033[1;33mTop %d Trending Coins\033[0m\n", limit);
     
     char* pos = json;
     int count = 0;
