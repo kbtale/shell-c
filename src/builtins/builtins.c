@@ -32,11 +32,12 @@ extern int builtin_block(char **args, int arg_count);
 extern int builtin_fees();
 extern int builtin_defi(char **args, int arg_count);
 extern int builtin_nft(char **args, int arg_count);
+int builtin_exchanges(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx", "block", "fees", "defi", "nft"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx", "block", "fees", "defi", "nft", "exchanges"
 };
 
 int is_builtin(const char *command) {
@@ -84,6 +85,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "fees") == 0) return builtin_fees();
     if (strcmp(args[0], "defi") == 0) return builtin_defi(args, arg_count);
     if (strcmp(args[0], "nft") == 0) return builtin_nft(args, arg_count);
+    if (strcmp(args[0], "exchanges") == 0) return builtin_exchanges(args, arg_count);
     
     return -1;
 }
