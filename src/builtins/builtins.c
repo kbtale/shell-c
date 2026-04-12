@@ -27,11 +27,12 @@ extern int builtin_gas();
 extern int builtin_addrinfo(char **args, int arg_count);
 extern int builtin_balance(char **args, int arg_count);
 extern int builtin_whale();
+extern int builtin_tx(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx"
 };
 
 int is_builtin(const char *command) {
@@ -74,6 +75,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "addrinfo") == 0) return builtin_addrinfo(args, arg_count);
     if (strcmp(args[0], "balance") == 0) return builtin_balance(args, arg_count);
     if (strcmp(args[0], "whale") == 0) return builtin_whale();
+    if (strcmp(args[0], "tx") == 0) return builtin_tx(args, arg_count);
     
     return -1;
 }

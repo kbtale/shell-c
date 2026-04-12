@@ -213,3 +213,57 @@ int builtin_whale() {
     free(json);
     return 0;
 }
+
+int builtin_tx(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: tx <hash> [chain] (e.g., tx 0x... eth)\n");
+        return 1;
+    }
+
+    const char* hash = args[1];
+    const char* chain = (arg_count > 2) ? args[2] : "eth";
+    char url[512] = {0};
+
+    printf("\n\033[1;33mTransaction Explorer\033[0m\n");
+    printf("  Hash: %s\n", hash);
+
+    if (strcmp(chain, "eth") == 0) {
+        snprintf(url, sizeof(url), "https://api.blockcypher.com/v1/eth/main/txs/%s", hash);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* val_ptr = strstr(json, "\"total\":");
+            char* conf_ptr = strstr(json, "\"confirmations\":");
+            if (val_ptr && conf_ptr) {
+                long long total = 0;
+                int confs = 0;
+                sscanf(val_ptr + 8, "%lld", &total);
+                sscanf(conf_ptr + 16, "%d", &confs);
+                printf("  Network: Ethereum\n");
+                printf("  Total Value: \033[1;32m%.6f ETH\033[0m\n", (double)total / 1e18);
+                printf("  Confirmations: %d\n", confs);
+            } else {
+                printf("  Error: Transaction not found.\n");
+            }
+            free(json);
+        }
+    } else if (strcmp(chain, "btc") == 0) {
+        snprintf(url, sizeof(url), "https://blockchain.info/rawtx/%s", hash);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* val_ptr = strstr(json, "\"out\":"); 
+            if (val_ptr) {
+                printf("  Network: Bitcoin\n");
+                printf("  Status: \033[1;32mConfirmed\033[0m\n");
+                printf("  Details: blockchain.com/btc/tx/%s\n", hash);
+            } else {
+                printf("  Error: Transaction not found.\n");
+            }
+            free(json);
+        }
+    } else {
+        printf("  Error: Chain '%s' not supported.\n", chain);
+    }
+
+    printf("\n");
+    return 0;
+}
