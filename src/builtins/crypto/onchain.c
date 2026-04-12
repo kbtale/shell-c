@@ -267,3 +267,57 @@ int builtin_tx(char **args, int arg_count) {
     printf("\n");
     return 0;
 }
+
+int builtin_block(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: block <number> [chain] (e.g., block 12345 eth)\n");
+        return 1;
+    }
+
+    const char* num = args[1];
+    const char* chain = (arg_count > 2) ? args[2] : "eth";
+    char url[512] = {0};
+
+    printf("\n\033[1;33mBlock Explorer\033[0m\n");
+    printf("  Height: %s\n", num);
+
+    if (strcmp(chain, "eth") == 0) {
+        snprintf(url, sizeof(url), "https://api.blockcypher.com/v1/eth/main/blocks/%s", num);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* time_ptr = strstr(json, "\"received\":");
+            char* txs_ptr = strstr(json, "\"n_tx\":");
+            if (time_ptr && txs_ptr) {
+                char time[32] = {0};
+                int txs = 0;
+                sscanf(time_ptr + 12, "\"%19s", time);
+                sscanf(txs_ptr + 7, "%d", &txs);
+                printf("  Network: Ethereum\n");
+                printf("  Timestamp: %s\n", time);
+                printf("  Transactions: %d\n", txs);
+            } else {
+                printf("  Error: Block not found.\n");
+            }
+            free(json);
+        }
+    } else if (strcmp(chain, "btc") == 0) {
+        snprintf(url, sizeof(url), "https://blockchain.info/block-height/%s?format=json", num);
+        char* json = fetch_url_content(url);
+        if (json) {
+            char* block_start = strstr(json, "{\"hash\":");
+            if (block_start) {
+                printf("  Network: Bitcoin\n");
+                printf("  Status: \033[1;32mGenerated\033[0m\n");
+                printf("  Details: blockchain.com/btc/block/%s\n", num);
+            } else {
+                printf("  Error: Block not found.\n");
+            }
+            free(json);
+        }
+    } else {
+        printf("  Error: Chain '%s' not supported.\n", chain);
+    }
+
+    printf("\n");
+    return 0;
+}
