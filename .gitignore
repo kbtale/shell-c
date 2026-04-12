@@ -65,6 +65,8 @@ shell
 # Local history files created during testing
 .shell_history
 *.history
+*.md
+!README.md
 
 # Workspace clutter
 *.txt

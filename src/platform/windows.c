@@ -41,7 +41,7 @@ void get_input_windows(char *buffer, int size) {
     while (1) {
         c = _getch(); // Read key
 
-        // --- ARROW KEYS (Special 2-byte codes: 224 or 0, then the code) ---
+        // Arrow keys (Special 2-byte codes)
         if (c == -32 || c == 224) { 
             c = _getch(); // Get the actual code
 
