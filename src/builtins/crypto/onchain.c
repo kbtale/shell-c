@@ -320,4 +320,39 @@ int builtin_block(char **args, int arg_count) {
 
     printf("\n");
     return 0;
+}int builtin_fees() {
+    printf("\n\033[1;33mEstimated Transaction Fees (Standard Transfer)\033[0m\n");
+
+    char* price_json = fetch_url_content("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd");
+    double price_btc = 60000, price_eth = 3000;
+    if (price_json) {
+        char *b = strstr(price_json, "\"bitcoin\":{\"usd\":");
+        char *e = strstr(price_json, "\"ethereum\":{\"usd\":");
+        if (b) sscanf(b + 17, "%lf", &price_btc);
+        if (e) sscanf(e + 18, "%lf", &price_eth);
+        free(price_json);
+    }
+
+    char* btc_json = fetch_url_content("https://mempool.space/api/v1/fees/recommended");
+    if (btc_json) {
+        int fast = 0;
+        char *f = strstr(btc_json, "\"fastestFee\":");
+        if (f) sscanf(f + 13, "%d", &fast);
+        double cost = (140.0 * fast * price_btc) / 1e8;
+        printf("  Bitcoin: \033[1;31m$%.2f\033[0m (%d sat/vB)\n", cost, fast);
+        free(btc_json);
+    }
+
+    char* eth_json = fetch_url_content("https://api.etherscan.io/api?module=gastracker&action=gasoracle");
+    if (eth_json) {
+        int med = 0;
+        char *m = strstr(eth_json, "\"ProposeGasPrice\":");
+        if (m) sscanf(m + 19, "\"%d\"", &med);
+        double cost = (21000.0 * med * price_eth) / 1e9;
+        printf("  Ethereum: \033[1;32m$%.2f\033[0m (%d Gwei)\n", cost, med);
+        free(eth_json);
+    }
+
+    printf("\n");
+    return 0;
 }
