@@ -55,3 +55,50 @@ int builtin_defi(char **args, int arg_count) {
     free(json);
     return 0;
 }
+
+int builtin_nft(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: nft <id> (e.g., nft bored-ape-yacht-club)\n");
+        return 1;
+    }
+
+    const char* collection = args[1];
+    char url[256];
+    snprintf(url, sizeof(url), "https://api.coingecko.com/api/v3/nfts/%s", collection);
+
+    char* json = fetch_url_content(url);
+    if (!json) {
+        printf("Error: Could not fetch NFT data. Ensure you used the correct ID (slug).\n");
+        return 1;
+    }
+
+    printf("\n\033[1;33mNFT Collection Status\033[0m\n");
+
+    char name[64] = {0};
+    char asset_platform[32] = {0};
+    double floor_eth = 0;
+    double vol_24h = 0;
+
+    char* name_ptr = strstr(json, "\"name\":\"");
+    char* plat_ptr = strstr(json, "\"asset_platform_id\":\"");
+    char* floor_ptr = strstr(json, "\"floor_price\":{\"native_currency\":");
+    char* vol_ptr = strstr(json, "\"volume_24h\":{\"native_currency\":");
+
+    if (name_ptr) sscanf(name_ptr + 8, "%[^\"]", name);
+    if (plat_ptr) sscanf(plat_ptr + 21, "%[^\"]", asset_platform);
+    if (floor_ptr) sscanf(floor_ptr + 33, "%lf", &floor_eth);
+    if (vol_ptr) sscanf(vol_ptr + 33, "%lf", &vol_24h);
+
+    if (name[0]) {
+        printf("  Collection: %s\n", name);
+        printf("  Platform:   %s\n", asset_platform[0] ? asset_platform : "Ethereum");
+        printf("  Floor:      \033[1;32m%.3f ETH\033[0m\n", floor_eth);
+        printf("  24h Volume: %.2f ETH\n", vol_24h);
+    } else {
+        printf("  Error: Could not parse collection details.\n");
+    }
+
+    printf("\n");
+    free(json);
+    return 0;
+}
