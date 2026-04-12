@@ -56,3 +56,44 @@ int builtin_gas() {
     printf("\n");
     return 0;
 }
+
+static int is_base58(const char* s) {
+    while (*s) {
+        if (!((*s >= '1' && *s <= '9') || (*s >= 'A' && *s <= 'H') || 
+              (*s >= 'J' && *s <= 'N') || (*s >= 'P' && *s <= 'Z') || 
+              (*s >= 'a' && *s <= 'k') || (*s >= 'm' && *s <= 'z'))) return 0;
+        s++;
+    }
+    return 1;
+}
+
+int builtin_addrinfo(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: addrinfo <address>\n");
+        return 1;
+    }
+
+    const char* addr = args[1];
+    int len = strlen(addr);
+
+    printf("\n\033[1;33mAddress Analysis\033[0m\n");
+    printf("  Target: %s\n", addr);
+
+    if (len == 42 && addr[0] == '0' && addr[1] == 'x') {
+        printf("  Network: \033[1;32mEthereum / EVM\033[0m\n");
+        printf("  Type: EOA or Contract Address\n");
+    } else if ((len >= 26 && len <= 35) && (addr[0] == '1' || addr[0] == '3')) {
+        printf("  Network: \033[1;32mBitcoin\033[0m\n");
+        printf("  Type: Legacy (P2PKH) or P2SH\n");
+    } else if (len >= 42 && len <= 62 && strncmp(addr, "bc1", 3) == 0) {
+        printf("  Network: \033[1;32mBitcoin (SegWit)\033[0m\n");
+        printf("  Type: Bech32\n");
+    } else if (len >= 32 && len <= 44 && is_base58(addr)) {
+        printf("  Network: \033[1;32mSolana\033[0m\n");
+        printf("  Type: Base58 Address\n");
+    } else {
+        printf("  Status: \033[1;31mUnknown or Invalid Format\033[0m\n");
+    }
+    printf("\n");
+    return 0;
+}
