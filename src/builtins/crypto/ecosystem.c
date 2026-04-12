@@ -64,3 +64,54 @@ int builtin_exchanges(char **args, int arg_count) {
     free(json);
     return 0;
 }
+
+int builtin_news(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: news <symbol> (e.g., news btc)\n");
+        return 1;
+    }
+
+    const char* symbol = args[1];
+    char url[512];
+    snprintf(url, sizeof(url), "https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss/tag/%s", symbol);
+
+    char* json = fetch_url_content(url);
+    if (!json) {
+        printf("Error: Could not fetch news. Try a more common symbol.\n");
+        return 1;
+    }
+
+    printf("\n\033[1;33mLatest News: %s\033[0m\n", symbol);
+
+    char* pos = strstr(json, "\"items\":[");
+    if (!pos) {
+        printf("  No recent headlines found for this asset.\n");
+        free(json);
+        return 0;
+    }
+
+    int count = 0;
+    while (count < 5) {
+        pos = strstr(pos, "{\"title\":");
+        if (!pos) break;
+
+        char title[256] = {0};
+        char link[256] = {0};
+
+        char* title_ptr = strstr(pos, "\"title\":\"");
+        char* link_ptr = strstr(pos, "\"link\":\"");
+
+        if (title_ptr && link_ptr) {
+            sscanf(title_ptr + 9, "%255[^\"]", title);
+            sscanf(link_ptr + 8, "%255[^\"]", link);
+            
+            printf("  - %s\n", title);
+            printf("    \033[0;36m%s\033[0m\n\n", link);
+            count++;
+        }
+        pos += 10;
+    }
+
+    free(json);
+    return 0;
+}
