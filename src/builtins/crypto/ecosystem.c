@@ -65,6 +65,34 @@ int builtin_exchanges(char **args, int arg_count) {
     return 0;
 }
 
+int builtin_halving() {
+    printf("\n\033[1;33mBitcoin Halving Countdown\033[0m\n");
+
+    char* height_resp = fetch_url_content("https://mempool.space/api/blocks/tip/height");
+    if (!height_resp) {
+        printf("  Error: Could not retrieve current block height.\n");
+        return 1;
+    }
+
+    long long current_height = atoll(height_resp);
+    long long halving_interval = 210000;
+    long long next_halving = ((current_height / halving_interval) + 1) * halving_interval;
+    long long blocks_left = next_halving - current_height;
+
+    double total_minutes = (double)blocks_left * 10.0;
+    int days = (int)(total_minutes / (24 * 60));
+    int hours = (int)((total_minutes / 60)) % 24;
+
+    printf("  Current Height:  %lld\n", current_height);
+    printf("  Next Halving:    \033[1;32m%lld\033[0m\n", next_halving);
+    printf("  Blocks Left:     %lld\n", blocks_left);
+    printf("  Estimated Time:  \033[1;36m%d Days, %d Hours\033[0m\n", days, hours);
+    printf("\n");
+
+    free(height_resp);
+    return 0;
+}
+
 int builtin_news(char **args, int arg_count) {
     if (arg_count < 2) {
         printf("Usage: news <symbol> (e.g., news btc)\n");
