@@ -25,6 +25,7 @@ int builtin_cshell() {
 
 int builtin_help() {
     printf("\n\033[1;33m--- CSHELL MANUAL ---\033[0m\n");
+    printf("  \033[1;32mascii [char]\033[0m: Show ASCII code or table\n");
     printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
     printf("  \033[1;32mcalc <n> <op> <n>\033[0m: Simple calculator\n");
     printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
