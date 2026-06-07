@@ -40,12 +40,16 @@ int builtin_help() {
     printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");
     printf("  \033[1;32mip\033[0m         : Show network info\n");
     printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
+    printf("  \033[1;32mmatrix\033[0m     : Matrix rain effect\n");
     printf("  \033[1;32mmkdir <dir>\033[0m: Create directory\n");
+    printf("  \033[1;32mmotd\033[0m        : Message of the day\n");
     printf("  \033[1;32mmv <src> <dst>\033[0m: Move/rename file\n");
     printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
     printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
     printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
+    printf("  \033[1;32mread <url>\033[0m: Fetch and display URL\n");
     printf("  \033[1;32mrm <file>\033[0m  : Remove file\n");
+    printf("  \033[1;32mskullsay <t>\033[0m: Skull talking ASCII art\n");
     printf("  \033[1;32mtail [-n N] <file>\033[0m: Show last N lines\n");
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
     printf("  \033[1;32mvalidate <seed>\033[0m: Validate BIP39 mnemonic\n");
