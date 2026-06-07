@@ -30,5 +30,6 @@ int builtin_date();
 int builtin_env(char **args, int arg_count);
 int builtin_uname(char **args, int arg_count);
 int builtin_df(char **args, int arg_count);
+int builtin_du(char **args, int arg_count);
 
 #endif

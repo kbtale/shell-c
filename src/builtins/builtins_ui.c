@@ -31,6 +31,7 @@ int builtin_help() {
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
     printf("  \033[1;32mdate\033[0m       : Show current date and time\n");
     printf("  \033[1;32mdf\033[0m         : Show disk usage\n");
+    printf("  \033[1;32mdu\033[0m         : Show directory size\n");
     printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
     printf("  \033[1;32menv\033[0m         : Show environment variables\n");
     printf("  \033[1;32mexit\033[0m       : Close shell\n");
