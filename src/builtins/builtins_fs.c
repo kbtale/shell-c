@@ -79,3 +79,29 @@ int builtin_mkdir(char **args, int arg_count) {
     }
     return 0;
 }
+
+int builtin_head(char **args, int arg_count) {
+    int lines = 10;
+    int file_idx = 1;
+    if (arg_count >= 2 && strcmp(args[1], "-n") == 0) {
+        if (arg_count >= 3) lines = atoi(args[2]);
+        file_idx = 3;
+    }
+    if (file_idx >= arg_count) {
+        printf("Usage: head [-n N] <file>\n");
+        return 0;
+    }
+    FILE *fp = fopen(args[file_idx], "r");
+    if (!fp) {
+        printf("head: %s: No such file\n", args[file_idx]);
+        return 0;
+    }
+    char line[4096];
+    int count = 0;
+    while (count < lines && fgets(line, sizeof(line), fp)) {
+        printf("%s", line);
+        count++;
+    }
+    fclose(fp);
+    return 0;
+}
