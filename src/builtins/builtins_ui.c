@@ -26,19 +26,26 @@ int builtin_cshell() {
 int builtin_help() {
     printf("\n\033[1;33mCShell Manual\033[0m\n");
     printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
+    printf("  \033[1;32mcat <file>\033[0m: Print file contents\n");
     printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
     printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
+    printf("  \033[1;32mcp <src> <dst>\033[0m: Copy file\n");
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
     printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
     printf("  \033[1;32mexit\033[0m       : Close shell\n");
+    printf("  \033[1;32mhead [-n N] <file>\033[0m: Show first N lines\n");
     printf("  \033[1;32mhelp\033[0m       : Show this help\n");
     printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
     printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");
     printf("  \033[1;32mip\033[0m         : Show network info\n");
     printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
+    printf("  \033[1;32mmkdir <dir>\033[0m: Create directory\n");
+    printf("  \033[1;32mmv <src> <dst>\033[0m: Move/rename file\n");
     printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
     printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
     printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
+    printf("  \033[1;32mrm <file>\033[0m  : Remove file\n");
+    printf("  \033[1;32mtail [-n N] <file>\033[0m: Show last N lines\n");
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
     printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
     printf("  \033[1;32mwhoami\033[0m     : Show current user\n\n");
