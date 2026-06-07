@@ -53,3 +53,14 @@ int builtin_mv(char **args, int arg_count) {
     }
     return 0;
 }
+
+int builtin_rm(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: rm <file>\n");
+        return 0;
+    }
+    if (remove(args[1]) != 0) {
+        printf("rm: %s: Cannot remove file\n", args[1]);
+    }
+    return 0;
+}
