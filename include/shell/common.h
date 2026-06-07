@@ -1,17 +1,20 @@
 #ifndef SHELL_COMMON_H
 #define SHELL_COMMON_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <fcntl.h>
 #include <ctype.h>
+
 #ifdef _WIN32
     #include <io.h>
     #include <process.h>
     #include <direct.h>
     #include <windows.h>
     #include <conio.h>
+
     #define access _access
     #ifdef X_OK
         #undef X_OK
@@ -21,6 +24,7 @@
     #define strdup _strdup
     #define getcwd _getcwd
     #define chdir _chdir
+    
     void usleep(int microseconds);
 #else
     #include <unistd.h>
@@ -32,6 +36,7 @@
     #include <readline/history.h>
     #define PATH_DELIMITER ":"
 #endif
+
 #ifndef STDOUT_FILENO
     #define STDOUT_FILENO 1
 #endif
@@ -41,4 +46,5 @@
 #ifndef STDIN_FILENO
     #define STDIN_FILENO 0
 #endif
+
 #endif

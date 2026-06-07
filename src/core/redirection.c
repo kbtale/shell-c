@@ -65,7 +65,7 @@ void handle_redirection_and_piping(char **args, int arg_count) {
         return;
     }
 
-    // --- REDIRECTION LOGIC ---
+    // Redirection logic
     char *stdout_file = NULL;
     char *stderr_file = NULL;
     int stdout_backup = -1;
