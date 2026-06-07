@@ -24,11 +24,12 @@ extern int builtin_hash(char **args, int arg_count);
 extern int builtin_genpw(char **args, int arg_count);
 extern int builtin_uuid();
 extern int builtin_ascii(char **args, int arg_count);
+extern int builtin_timer(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "calc", "hash", "genpw", "uuid", "ascii"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "calc", "hash", "genpw", "uuid", "ascii", "timer"
 };
 
 int is_builtin(const char *command) {
@@ -68,6 +69,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "genpw") == 0) return builtin_genpw(args, arg_count);
     if (strcmp(args[0], "uuid") == 0) return builtin_uuid();
     if (strcmp(args[0], "ascii") == 0) return builtin_ascii(args, arg_count);
+    if (strcmp(args[0], "timer") == 0) return builtin_timer(args, arg_count);
     
     return -1; // Not found
 }

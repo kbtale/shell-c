@@ -29,5 +29,6 @@ int builtin_hash(char **args, int arg_count);
 int builtin_genpw(char **args, int arg_count);
 int builtin_uuid();
 int builtin_ascii(char **args, int arg_count);
+int builtin_timer(char **args, int arg_count);
 
 #endif
