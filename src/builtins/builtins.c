@@ -19,11 +19,12 @@ extern int builtin_cshell();
 extern int builtin_clear();
 extern int builtin_whoami();
 extern int builtin_ip();
+extern int builtin_http(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "http"
 };
 
 int is_builtin(const char *command) {
@@ -58,6 +59,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "clear") == 0 || strcmp(args[0], "cls") == 0) return builtin_clear();
     if (strcmp(args[0], "whoami") == 0) return builtin_whoami();
     if (strcmp(args[0], "ip") == 0) return builtin_ip();
+    if (strcmp(args[0], "http") == 0) return builtin_http(args, arg_count);
     
     return -1; // Not found
 }
