@@ -27,5 +27,6 @@ int builtin_ip();
 int builtin_calc(char **args, int arg_count);
 int builtin_hash(char **args, int arg_count);
 int builtin_genpw(char **args, int arg_count);
+int builtin_uuid();
 
 #endif

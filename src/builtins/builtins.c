@@ -22,11 +22,12 @@ extern int builtin_ip();
 extern int builtin_calc(char **args, int arg_count);
 extern int builtin_hash(char **args, int arg_count);
 extern int builtin_genpw(char **args, int arg_count);
+extern int builtin_uuid();
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "calc", "hash", "genpw"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "calc", "hash", "genpw", "uuid"
 };
 
 int is_builtin(const char *command) {
@@ -64,6 +65,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "calc") == 0) return builtin_calc(args, arg_count);
     if (strcmp(args[0], "hash") == 0) return builtin_hash(args, arg_count);
     if (strcmp(args[0], "genpw") == 0) return builtin_genpw(args, arg_count);
+    if (strcmp(args[0], "uuid") == 0) return builtin_uuid();
     
     return -1; // Not found
 }
