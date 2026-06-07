@@ -48,5 +48,6 @@ int builtin_mv(char **args, int arg_count);
 int builtin_rm(char **args, int arg_count);
 int builtin_mkdir(char **args, int arg_count);
 int builtin_head(char **args, int arg_count);
+int builtin_tail(char **args, int arg_count);
 
 #endif // SHELL_BUILTINS_H
