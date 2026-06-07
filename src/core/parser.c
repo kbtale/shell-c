@@ -12,7 +12,7 @@ void tokenize_input(char *input, char **args, int *arg_count) {
     for (int i = 0; i < (int)strlen(input); i++) {
         char c = input[i];
 
-        // --- Handle Backslash Escaping ---
+    // Handle backslash escaping
         if (c == '\\') {
             int should_escape = 0;
             

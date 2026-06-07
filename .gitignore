@@ -56,6 +56,7 @@ vcpkg_installed
 
 # The compiled binary
 /shell
+
 # IDE/Editor specific
 .vscode/
 .idea/
@@ -64,6 +65,8 @@ vcpkg_installed
 # Local history files created during testing
 .shell_history
 *.history
+*.md
+!README.md
 
 # Workspace clutter
 *.txt

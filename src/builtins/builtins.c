@@ -19,13 +19,34 @@ extern int builtin_cshell();
 extern int builtin_clear();
 extern int builtin_whoami();
 extern int builtin_ip();
-extern int builtin_genaddr(char **args, int arg_count);
-extern int builtin_validate(char **args, int arg_count);
+extern int builtin_price(char **args, int arg_count);
+extern int builtin_convert(char **args, int arg_count);
+extern int builtin_trending(char **args, int arg_count);
+extern int builtin_feargreed();
+extern int builtin_gas();
+extern int builtin_addrinfo(char **args, int arg_count);
+extern int builtin_balance(char **args, int arg_count);
+extern int builtin_whale();
+extern int builtin_tx(char **args, int arg_count);
+extern int builtin_block(char **args, int arg_count);
+extern int builtin_fees();
+extern int builtin_defi(char **args, int arg_count);
+extern int builtin_nft(char **args, int arg_count);
+extern int builtin_exchanges(char **args, int arg_count);
+extern int builtin_news(char **args, int arg_count);
+extern int builtin_halving();
+extern int builtin_cat(char **args, int arg_count);
+extern int builtin_cp(char **args, int arg_count);
+extern int builtin_mv(char **args, int arg_count);
+extern int builtin_rm(char **args, int arg_count);
+extern int builtin_mkdir(char **args, int arg_count);
+extern int builtin_head(char **args, int arg_count);
+extern int builtin_tail(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "genaddr", "validate"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "cat", "cp", "mv", "rm", "mkdir", "head", "tail", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx", "block", "fees", "defi", "nft", "exchanges", "news", "halving"
 };
 
 int is_builtin(const char *command) {
@@ -60,8 +81,29 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "clear") == 0 || strcmp(args[0], "cls") == 0) return builtin_clear();
     if (strcmp(args[0], "whoami") == 0) return builtin_whoami();
     if (strcmp(args[0], "ip") == 0) return builtin_ip();
-    if (strcmp(args[0], "genaddr") == 0) return builtin_genaddr(args, arg_count);
-    if (strcmp(args[0], "validate") == 0) return builtin_validate(args, arg_count);
+    if (strcmp(args[0], "price") == 0) return builtin_price(args, arg_count);
+    if (strcmp(args[0], "convert") == 0) return builtin_convert(args, arg_count);
+    if (strcmp(args[0], "trending") == 0) return builtin_trending(args, arg_count);
+    if (strcmp(args[0], "feargreed") == 0) return builtin_feargreed();
+    if (strcmp(args[0], "gas") == 0) return builtin_gas();
+    if (strcmp(args[0], "addrinfo") == 0) return builtin_addrinfo(args, arg_count);
+    if (strcmp(args[0], "balance") == 0) return builtin_balance(args, arg_count);
+    if (strcmp(args[0], "whale") == 0) return builtin_whale();
+    if (strcmp(args[0], "tx") == 0) return builtin_tx(args, arg_count);
+    if (strcmp(args[0], "block") == 0) return builtin_block(args, arg_count);
+    if (strcmp(args[0], "fees") == 0) return builtin_fees();
+    if (strcmp(args[0], "defi") == 0) return builtin_defi(args, arg_count);
+    if (strcmp(args[0], "nft") == 0) return builtin_nft(args, arg_count);
+    if (strcmp(args[0], "exchanges") == 0) return builtin_exchanges(args, arg_count);
+    if (strcmp(args[0], "news") == 0) return builtin_news(args, arg_count);
+    if (strcmp(args[0], "halving") == 0) return builtin_halving();
+    if (strcmp(args[0], "cat") == 0) return builtin_cat(args, arg_count);
+    if (strcmp(args[0], "cp") == 0) return builtin_cp(args, arg_count);
+    if (strcmp(args[0], "mv") == 0) return builtin_mv(args, arg_count);
+    if (strcmp(args[0], "rm") == 0) return builtin_rm(args, arg_count);
+    if (strcmp(args[0], "mkdir") == 0) return builtin_mkdir(args, arg_count);
+    if (strcmp(args[0], "head") == 0) return builtin_head(args, arg_count);
+    if (strcmp(args[0], "tail") == 0) return builtin_tail(args, arg_count);
     
-    return -1; // Not found
+    return -1;
 }

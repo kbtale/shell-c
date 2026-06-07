@@ -154,7 +154,7 @@ void print_start_screen(int show_all) {
     srand(time(NULL));
 
     if (show_all) {
-        printf("\n\033[1;32m--- THEME GALLERY ---\033[0m\n\n");
+        printf("\n\033[1;32mTheme Gallery\033[0m\n\n");
 
         printf("\033[1;35m[ 3D CUBES ]\033[0m\n");
         for(int i=0; h21[0][i]; i++) printf("\033[1;35m%s\n", h21[0][i]);

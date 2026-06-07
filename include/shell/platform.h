@@ -1,6 +1,8 @@
 #ifndef SHELL_PLATFORM_H
 #define SHELL_PLATFORM_H
+
 #include "common.h"
+
 #ifdef _WIN32
     #define MAX_HISTORY 100
     #define MAX_CMD_LEN 1024
