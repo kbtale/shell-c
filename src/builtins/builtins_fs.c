@@ -64,3 +64,18 @@ int builtin_rm(char **args, int arg_count) {
     }
     return 0;
 }
+
+int builtin_mkdir(char **args, int arg_count) {
+    if (arg_count < 2) {
+        printf("Usage: mkdir <directory>\n");
+        return 0;
+    }
+#ifdef _WIN32
+    if (_mkdir(args[1]) != 0) {
+#else
+    if (mkdir(args[1], 0755) != 0) {
+#endif
+        printf("mkdir: %s: Cannot create directory\n", args[1]);
+    }
+    return 0;
+}
