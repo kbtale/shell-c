@@ -21,11 +21,12 @@ extern int builtin_whoami();
 extern int builtin_ip();
 extern int builtin_http(char **args, int arg_count);
 extern int builtin_geoip(char **args, int arg_count);
+extern int builtin_port(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "http", "geoip"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "http", "geoip", "port"
 };
 
 int is_builtin(const char *command) {
@@ -62,6 +63,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "ip") == 0) return builtin_ip();
     if (strcmp(args[0], "http") == 0) return builtin_http(args, arg_count);
     if (strcmp(args[0], "geoip") == 0) return builtin_geoip(args, arg_count);
+    if (strcmp(args[0], "port") == 0) return builtin_port(args, arg_count);
     
     return -1; // Not found
 }

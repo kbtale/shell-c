@@ -26,5 +26,6 @@ int builtin_whoami();
 int builtin_ip();
 int builtin_http(char **args, int arg_count);
 int builtin_geoip(char **args, int arg_count);
+int builtin_port(char **args, int arg_count);
 
 #endif
