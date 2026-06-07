@@ -23,11 +23,12 @@ extern int builtin_grep(char **args, int arg_count);
 extern int builtin_wc(char **args, int arg_count);
 extern int builtin_cal(char **args, int arg_count);
 extern int builtin_base64(char **args, int arg_count);
+extern int builtin_rot13(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "grep", "wc", "cal", "base64"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "grep", "wc", "cal", "base64", "rot13"
 };
 
 int is_builtin(const char *command) {
@@ -66,6 +67,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "wc") == 0) return builtin_wc(args, arg_count);
     if (strcmp(args[0], "cal") == 0) return builtin_cal(args, arg_count);
     if (strcmp(args[0], "base64") == 0) return builtin_base64(args, arg_count);
+    if (strcmp(args[0], "rot13") == 0) return builtin_rot13(args, arg_count);
     
     return -1; // Not found
 }

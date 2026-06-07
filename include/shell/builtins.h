@@ -28,5 +28,6 @@ int builtin_grep(char **args, int arg_count);
 int builtin_wc(char **args, int arg_count);
 int builtin_cal(char **args, int arg_count);
 int builtin_base64(char **args, int arg_count);
+int builtin_rot13(char **args, int arg_count);
 
 #endif
