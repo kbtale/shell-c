@@ -55,8 +55,7 @@ build
 vcpkg_installed
 
 # The compiled binary
-shell
-
+/shell
 # IDE/Editor specific
 .vscode/
 .idea/
