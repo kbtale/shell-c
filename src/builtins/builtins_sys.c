@@ -22,3 +22,9 @@ int builtin_uptime() {
 #endif
     return 0;
 }
+
+int builtin_date() {
+    time_t now = time(NULL);
+    printf("\n  \033[1;32m%s\033[0m\n\n", ctime(&now));
+    return 0;
+}

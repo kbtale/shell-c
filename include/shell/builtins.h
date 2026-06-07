@@ -26,5 +26,6 @@ int builtin_whoami();
 int builtin_ip();
 int builtin_ps(char **args, int arg_count);
 int builtin_uptime();
+int builtin_date();
 
 #endif

@@ -29,6 +29,7 @@ int builtin_help() {
     printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
     printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
+    printf("  \033[1;32mdate\033[0m       : Show current date and time\n");
     printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
     printf("  \033[1;32mexit\033[0m       : Close shell\n");
     printf("  \033[1;32mhelp\033[0m       : Show this help\n");
