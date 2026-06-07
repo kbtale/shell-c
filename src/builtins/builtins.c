@@ -21,11 +21,12 @@ extern int builtin_whoami();
 extern int builtin_ip();
 extern int builtin_matrix(char **args, int arg_count);
 extern int builtin_motd();
+extern int builtin_skullsay(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "matrix", "motd"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "matrix", "motd", "skullsay"
 };
 
 int is_builtin(const char *command) {
@@ -62,6 +63,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "ip") == 0) return builtin_ip();
     if (strcmp(args[0], "matrix") == 0) return builtin_matrix(args, arg_count);
     if (strcmp(args[0], "motd") == 0) return builtin_motd();
+    if (strcmp(args[0], "skullsay") == 0) return builtin_skullsay(args, arg_count);
     
     return -1; // Not found
 }
