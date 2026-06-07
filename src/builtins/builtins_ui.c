@@ -38,6 +38,7 @@ int builtin_help() {
     printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
     printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
     printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
+    printf("  \033[1;32mps\033[0m         : List running processes\n");
     printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
     printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
