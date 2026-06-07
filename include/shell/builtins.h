@@ -25,5 +25,6 @@ int builtin_banner(char **args);
 int builtin_whoami();
 int builtin_ip();
 int builtin_genaddr(char **args, int arg_count);
+int builtin_validate(char **args, int arg_count);
 
 #endif

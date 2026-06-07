@@ -20,11 +20,12 @@ extern int builtin_clear();
 extern int builtin_whoami();
 extern int builtin_ip();
 extern int builtin_genaddr(char **args, int arg_count);
+extern int builtin_validate(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "genaddr"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "genaddr", "validate"
 };
 
 int is_builtin(const char *command) {
@@ -60,6 +61,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "whoami") == 0) return builtin_whoami();
     if (strcmp(args[0], "ip") == 0) return builtin_ip();
     if (strcmp(args[0], "genaddr") == 0) return builtin_genaddr(args, arg_count);
+    if (strcmp(args[0], "validate") == 0) return builtin_validate(args, arg_count);
     
     return -1; // Not found
 }
