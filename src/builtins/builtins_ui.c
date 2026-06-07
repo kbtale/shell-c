@@ -26,6 +26,7 @@ int builtin_cshell() {
 int builtin_help() {
     printf("\n\033[1;33mCShell Manual\033[0m\n");
     printf("  \033[1;32mbindump\033[0m    : View file in binary\n");
+    printf("  \033[1;32mcat <file>\033[0m: Print file contents\n");
     printf("  \033[1;32mcd <dir>\033[0m   : Change directory\n");
     printf("  \033[1;32mclear/cls\033[0m  : Clear the terminal\n");
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");

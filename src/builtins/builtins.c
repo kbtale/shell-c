@@ -35,11 +35,12 @@ extern int builtin_nft(char **args, int arg_count);
 extern int builtin_exchanges(char **args, int arg_count);
 extern int builtin_news(char **args, int arg_count);
 extern int builtin_halving();
+extern int builtin_cat(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx", "block", "fees", "defi", "nft", "exchanges", "news", "halving"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "cat", "price", "convert", "trending", "feargreed", "gas", "addrinfo", "balance", "whale", "tx", "block", "fees", "defi", "nft", "exchanges", "news", "halving"
 };
 
 int is_builtin(const char *command) {
@@ -90,6 +91,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "exchanges") == 0) return builtin_exchanges(args, arg_count);
     if (strcmp(args[0], "news") == 0) return builtin_news(args, arg_count);
     if (strcmp(args[0], "halving") == 0) return builtin_halving();
+    if (strcmp(args[0], "cat") == 0) return builtin_cat(args, arg_count);
     
     return -1;
 }
