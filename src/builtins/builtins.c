@@ -22,11 +22,12 @@ extern int builtin_ip();
 extern int builtin_ps(char **args, int arg_count);
 extern int builtin_uptime();
 extern int builtin_date();
+extern int builtin_env(char **args, int arg_count);
 
 static const char *builtins_list[] = {
     "echo", "exit", "type", "pwd", "cd", "history", "cshell", 
     "mx", "hexdump", "bindump", "weather", "help", "ls", 
-    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "ps", "uptime", "date"
+    "clear", "cls", "ping", "read", "touch", "banner", "whoami", "ip", "ps", "uptime", "date", "env"
 };
 
 int is_builtin(const char *command) {
@@ -64,6 +65,7 @@ int execute_builtin(char **args, int arg_count, int *exit_signal) {
     if (strcmp(args[0], "ps") == 0) return builtin_ps(args, arg_count);
     if (strcmp(args[0], "uptime") == 0) return builtin_uptime();
     if (strcmp(args[0], "date") == 0) return builtin_date();
+    if (strcmp(args[0], "env") == 0) return builtin_env(args, arg_count);
     
     return -1; // Not found
 }
