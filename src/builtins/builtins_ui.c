@@ -32,6 +32,7 @@ int builtin_help() {
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
     printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
     printf("  \033[1;32mexit\033[0m       : Close shell\n");
+    printf("  \033[1;32mhash <text>\033[0m: Compute hash of text\n");
     printf("  \033[1;32mhelp\033[0m       : Show this help\n");
     printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
     printf("  \033[1;32mhistory\033[0m    : Show or manage history\n");

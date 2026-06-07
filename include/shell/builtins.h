@@ -25,5 +25,6 @@ int builtin_banner(char **args);
 int builtin_whoami();
 int builtin_ip();
 int builtin_calc(char **args, int arg_count);
+int builtin_hash(char **args, int arg_count);
 
 #endif
