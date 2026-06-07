@@ -25,5 +25,6 @@ int builtin_clear(void);
 int builtin_whoami(void);
 int builtin_ip(void);
 int builtin_matrix(char **args, int arg_count);
+int builtin_motd(void);
 
 #endif

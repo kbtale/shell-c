@@ -37,6 +37,7 @@ int builtin_help() {
     printf("  \033[1;32mip\033[0m         : Show network info\n");
     printf("  \033[1;32mls [-a]\033[0m    : List files (use -a for hidden)\n");
     printf("  \033[1;32mmatrix\033[0m     : Matrix rain effect\n");
+    printf("  \033[1;32mmotd\033[0m        : Message of the day\n");
     printf("  \033[1;32mmx <dom>\033[0m   : Find mail servers for domain\n");
     printf("  \033[1;32mping [host]\033[0m: Ping a host (defaults to 8.8.8.8)\n");
     printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
