@@ -14,8 +14,5 @@
     char *command_generator(const char *text, int state);
     char **builtin_completion(const char *text, int start, int end);
 #endif
-
-// Shared input abstraction
 void shell_get_input(char *buffer, int size);
-
-#endif // SHELL_PLATFORM_H
+#endif

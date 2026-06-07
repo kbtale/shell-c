@@ -33,6 +33,7 @@ int builtin_help() {
     printf("  \033[1;32mcshell\033[0m     : Show theme gallery\n");
     printf("  \033[1;32mecho <txt>\033[0m : Print text\n");
     printf("  \033[1;32mexit\033[0m       : Close shell\n");
+    printf("  \033[1;32mgenaddr [c]\033[0m: Generate crypto address\n");
     printf("  \033[1;32mhead [-n N] <file>\033[0m: Show first N lines\n");
     printf("  \033[1;32mhelp\033[0m       : Show this help\n");
     printf("  \033[1;32mhexdump\033[0m    : View file in hex\n");
@@ -47,6 +48,7 @@ int builtin_help() {
     printf("  \033[1;32mrm <file>\033[0m  : Remove file\n");
     printf("  \033[1;32mtail [-n N] <file>\033[0m: Show last N lines\n");
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
+    printf("  \033[1;32mvalidate <seed>\033[0m: Validate BIP39 mnemonic\n");
     printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
     printf("  \033[1;32mwhoami\033[0m     : Show current user\n\n");
     return 0;

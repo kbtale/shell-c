@@ -34,11 +34,9 @@
     #include <dirent.h>
     #include <readline/readline.h>
     #include <readline/history.h>
-
     #define PATH_DELIMITER ":"
 #endif
 
-// Standard File Descriptors
 #ifndef STDOUT_FILENO
     #define STDOUT_FILENO 1
 #endif
@@ -49,4 +47,4 @@
     #define STDIN_FILENO 0
 #endif
 
-#endif // SHELL_COMMON_H
+#endif

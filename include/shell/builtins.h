@@ -4,7 +4,6 @@
 int execute_builtin(char **args, int arg_count, int *exit_signal);
 int is_builtin(const char *command);
 
-// Builtin implementations
 int builtin_echo(char **args, int arg_count);
 int builtin_exit();
 int builtin_pwd();
@@ -24,7 +23,6 @@ int builtin_block(char **args, int arg_count);
 int builtin_fees();
 int builtin_defi(char **args, int arg_count);
 int builtin_nft(char **args, int arg_count);
-int builtin_nft(char **args, int arg_count);
 int builtin_exchanges(char **args, int arg_count);
 int builtin_news(char **args, int arg_count);
 int builtin_halving();
@@ -42,6 +40,8 @@ int builtin_mx(char **args);
 int builtin_banner(char **args);
 int builtin_whoami();
 int builtin_ip();
+int builtin_genaddr(char **args, int arg_count);
+int builtin_validate(char **args, int arg_count);
 int builtin_cat(char **args, int arg_count);
 int builtin_cp(char **args, int arg_count);
 int builtin_mv(char **args, int arg_count);
@@ -50,4 +50,4 @@ int builtin_mkdir(char **args, int arg_count);
 int builtin_head(char **args, int arg_count);
 int builtin_tail(char **args, int arg_count);
 
-#endif // SHELL_BUILTINS_H
+#endif
