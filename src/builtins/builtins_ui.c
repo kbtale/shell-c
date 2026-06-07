@@ -44,6 +44,7 @@ int builtin_help() {
     printf("  \033[1;32mpwd\033[0m        : Print working directory\n");
     printf("  \033[1;32mtype <cmd>\033[0m : Identify builtin or path\n");
     printf("  \033[1;32muptime\033[0m     : Show system uptime\n");
+    printf("  \033[1;32muname\033[0m      : Show system information\n");
     printf("  \033[1;32mweather\033[0m    : Get live weather report\n");
     printf("  \033[1;32mwhoami\033[0m     : Show current user\n\n");
     return 0;
