@@ -13,3 +13,12 @@ int builtin_ps(char **args, int arg_count) {
     printf("\n");
     return 0;
 }
+
+int builtin_uptime() {
+#ifdef _WIN32
+    system("wmic os get lastbootuptime");
+#else
+    system("uptime");
+#endif
+    return 0;
+}
