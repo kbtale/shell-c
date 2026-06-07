@@ -44,5 +44,6 @@ int builtin_whoami();
 int builtin_ip();
 int builtin_cat(char **args, int arg_count);
 int builtin_cp(char **args, int arg_count);
+int builtin_mv(char **args, int arg_count);
 
 #endif // SHELL_BUILTINS_H

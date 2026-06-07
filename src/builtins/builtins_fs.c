@@ -42,3 +42,14 @@ int builtin_cp(char **args, int arg_count) {
     fclose(dst);
     return 0;
 }
+
+int builtin_mv(char **args, int arg_count) {
+    if (arg_count < 3) {
+        printf("Usage: mv <src> <dst>\n");
+        return 0;
+    }
+    if (rename(args[1], args[2]) != 0) {
+        printf("mv: %s: Cannot move file\n", args[1]);
+    }
+    return 0;
+}
